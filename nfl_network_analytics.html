@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NFL Network Analytics</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --nfl-blue: #013369;
+    --nfl-red: #d50a0a;
+    --bg: #f4f6f9;
+    --card-bg: #fff;
+    --border: #ddd;
+    --text: #222;
+    --muted: #666;
+    --head-bg: #013369;
+  }
+  body { font-family: Arial, Helvetica, sans-serif; background: var(--bg); color: var(--text); font-size: 13px; }
+  header {
+    background: var(--nfl-blue);
+    color: #fff;
+    padding: 28px 40px 20px;
+    border-bottom: 4px solid var(--nfl-red);
+  }
+  header h1 { font-size: 26px; letter-spacing: 1px; text-transform: uppercase; }
+  header h1 span { color: #d4a017; }
+  header p { color: #8da8cc; margin-top: 6px; font-size: 12px; }
+  nav {
+    background: var(--nfl-red);
+    display: flex;
+    gap: 2px;
+    padding: 0 40px;
+    overflow-x: auto;
+  }
+  nav a {
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 18px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    white-space: nowrap;
+    opacity: .85;
+    transition: opacity .15s, background .15s;
+  }
+  nav a:hover { opacity:1; background: rgba(0,0,0,.2); }
+  main { max-width: 1400px; margin: 0 auto; padding: 32px 24px; }
+  section { margin-bottom: 40px; }
+  .section-title {
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--nfl-blue);
+    border-left: 4px solid var(--nfl-red);
+    padding-left: 12px;
+    margin-bottom: 6px;
+  }
+  .section-sub { color: var(--muted); font-size: 11px; margin-bottom: 14px; padding-left: 16px; }
+  .table-wrap { overflow-x: auto; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  table.dt { width: 100%; border-collapse: collapse; background: var(--card-bg); font-size: 12px; }
+  table.dt thead tr { background: var(--head-bg); color: #fff; }
+  table.dt th { padding: 9px 11px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; white-space: nowrap; }
+  table.dt td { padding: 8px 11px; border-bottom: 1px solid #eee; vertical-align: top; }
+  table.dt tr.alt td { background: #f7f9fc; }
+  table.dt tbody tr:hover td { background: #eef3fb; }
+  table.dt td:first-child { font-weight: 600; }
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 10px;
+  }
+  .kpi-card {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 20px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.1);
+    border-top: 3px solid var(--nfl-blue);
+    text-align: center;
+  }
+  .kpi-val { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .kpi-lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 4px; font-weight: bold; }
+  .kpi-note { font-size: 10px; color: #999; }
+  footer { text-align:center; padding: 24px; color: #aaa; font-size: 11px; border-top: 1px solid var(--border); margin-top: 20px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>NFL <span>Network</span> Analytics</h1>
+  <p>Founded: Nov 4, 2003 · Sold to ESPN: Aug 2025 · Sources: Nielsen, SNL Kagan, NFL filings, Sports Media Watch, Amazon/Prime Press</p>
+</header>
+<nav>
+  <a href="#kpi">KPI Dashboard</a>
+  <a href="#distribution">Distribution History</a>
+  <a href="#tnf">TNF Viewership</a>
+  <a href="#rights">Media Rights</a>
+  <a href="#nflplus">NFL+ Streaming</a>
+</nav>
+<main>
+
+  <section id="kpi">
+    <div class="section-title">KPI Dashboard</div>
+    <div class="section-sub">NFL Network — Business Analytics Summary</div>
+    <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-val" style="color:#013369">71.1M</div>
+      <div class="kpi-lbl">Peak HH Reach</div>
+      <div class="kpi-note">Feb 2015 (Nielsen)</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-val" style="color:#d50a0a">51.5M</div>
+      <div class="kpi-lbl">2023 HH Reach</div>
+      <div class="kpi-note">June 2023 (Nielsen)</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-val" style="color:#013369">$1.95/sub/mo</div>
+      <div class="kpi-lbl">Peak Carriage Fee</div>
+      <div class="kpi-note">~2024 estimate</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-val" style="color:#d50a0a">~$1.2B</div>
+      <div class="kpi-lbl">Est. Annual Affiliate Rev</div>
+      <div class="kpi-note">2016 peak (industry est.)</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-val" style="color:#013369">15.33M</div>
+      <div class="kpi-lbl">All-Time TNF Record</div>
+      <div class="kpi-note">2025 Amazon Prime</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-val" style="color:#d50a0a">10% ESPN stake</div>
+      <div class="kpi-lbl">ESPN Acquisition</div>
+      <div class="kpi-note">NFL equity in exchange</div>
+    </div></div>
+  </section>
+
+  <section id="distribution">
+    <div class="section-title">Cable &amp; Satellite Distribution History</div>
+    <div class="section-sub">NFL Network – Cable & Satellite Distribution History (2003–2024) | Sources: Wikipedia / Nielsen / NFL filings</div>
+    <div class="table-wrap"><table class="dt"><thead><tr><th>Year</th><th>US Households (M)</th><th>YoY Change (M)</th><th>YoY % Change</th><th>Carriage Fee $/sub/mo</th><th>Est. Annual Affiliate Rev ($M)</th><th>TNF Games on NFLN</th><th>Key Event</th></tr></thead><tbody><tr class=""><td>2,003</td><td>13</td><td>—</td><td>—</td><td>0.15</td><td>23</td><td>0</td><td>Launch Nov 4; DirecTV + select cable; $100M NFL investment</td></tr><tr class="alt"><td>2,004</td><td>18</td><td>5</td><td>38.5%</td><td>0.2</td><td>43</td><td>0</td><td>Charter first MSO; Dish Network deal signed</td></tr><tr class=""><td>2,005</td><td>28</td><td>10</td><td>55.6%</td><td>0.25</td><td>84</td><td>0</td><td>Time Warner NY deal; Comcast dispute starts</td></tr><tr class="alt"><td>2,006</td><td>40</td><td>12</td><td>42.9%</td><td>0.5</td><td>240</td><td>8</td><td>First 8 live TNF games; Comcast dispute escalates</td></tr><tr class=""><td>2,007</td><td>50</td><td>10</td><td>0.25</td><td>0.7</td><td>420</td><td>8</td><td>Time Warner dispute; Cablevision conflict</td></tr><tr class="alt"><td>2,008</td><td>54</td><td>4</td><td>0.08</td><td>0.8</td><td>518</td><td>8</td><td>FCC arbitration over tier placement</td></tr><tr class=""><td>2,009</td><td>55</td><td>1</td><td>1.9%</td><td>0.95</td><td>627</td><td>8</td><td>Comcast 10-yr deal at ~$0.40-0.45/sub; +45M homes</td></tr><tr class="alt"><td>2,010</td><td>72</td><td>17</td><td>30.9%</td><td>1</td><td>864</td><td>8</td><td>Time Warner settled; reached ~70M+ homes</td></tr><tr class=""><td>2,011</td><td>74</td><td>2</td><td>2.8%</td><td>1.1</td><td>977</td><td>8</td><td>Charter re-signed; 8 TNF games standard</td></tr><tr class="alt"><td>2,012</td><td>75</td><td>1</td><td>1.4%</td><td>1.15</td><td>1,035</td><td>8</td><td>Peak near saturation; ~75M HH</td></tr><tr class=""><td>2,013</td><td>75</td><td>0</td><td>0</td><td>1.34</td><td>1,206</td><td>8</td><td>Record $1.34/sub/mo carriage fee (SNL Kagan)</td></tr><tr class="alt"><td>2,014</td><td>74</td><td>-1</td><td>-1.3%</td><td>1.39</td><td>1,234</td><td>16</td><td>CBS simulcast deal; 16 TNF games; ~$1.39/sub est.</td></tr><tr class=""><td>2,015</td><td>71.1</td><td>-2.90000000000001</td><td>-3.9%</td><td>1.5</td><td>1,280</td><td>16</td><td>Peak 71.1M HH (Feb 2015); CBS simulcast year 2</td></tr><tr class="alt"><td>2,016</td><td>69</td><td>-2.09999999999999</td><td>-3.0%</td><td>1.55</td><td>1,283</td><td>16</td><td>Cord-cutting accelerates; CBS+NBC simulcasts</td></tr><tr class=""><td>2,017</td><td>67</td><td>-2</td><td>-2.9%</td><td>1.6</td><td>1,286</td><td>5</td><td>CBS+NBC+NFLN split; Amazon streaming added</td></tr><tr class="alt"><td>2,018</td><td>65</td><td>-2</td><td>-3.0%</td><td>1.65</td><td>1,287</td><td>11</td><td>FOX takes over TNF; NFLN still carries games</td></tr><tr class=""><td>2,019</td><td>62</td><td>-3</td><td>-4.6%</td><td>1.7</td><td>1,265</td><td>11</td><td>FOX+NFLN+Prime Video; NFLN carries all 16</td></tr><tr class="alt"><td>2,020</td><td>58</td><td>-4</td><td>-6.5%</td><td>1.75</td><td>1,218</td><td>11</td><td>COVID season; cord-cutting accelerates sharply</td></tr><tr class=""><td>2,021</td><td>55</td><td>-3</td><td>-5.2%</td><td>1.8</td><td>1,188</td><td>8</td><td>Amazon gets TNF exclusive rights starting 2022</td></tr><tr class="alt"><td>2,022</td><td>53</td><td>-2</td><td>-3.6%</td><td>1.85</td><td>1,177</td><td>7</td><td>Amazon exclusive TNF; NFLN limited to Sat/Intl games</td></tr><tr class=""><td>2,023</td><td>51.5</td><td>-1.5</td><td>-2.8%</td><td>1.9</td><td>1,174</td><td>7</td><td>51.5M HH as of June 2023 (Wikipedia/Nielsen)</td></tr><tr class="alt"><td>2,024</td><td>48</td><td>-3.5</td><td>-6.8%</td><td>1.95</td><td>1,123</td><td>7</td><td>ESPN deal announced Aug 2025; continued decline</td></tr></tbody></table></div>
+  </section>
+
+  <section id="tnf">
+    <div class="section-title">Thursday Night Football Viewership History</div>
+    <div class="section-sub">Thursday Night Football – Average Viewership by Season (2006–2025) | Sources: Nielsen / Sports Media Watch / Amazon Press</div>
+    <div class="table-wrap"><table class="dt"><thead><tr><th>Season</th><th>Avg Viewers (M)</th><th>YoY Change (M)</th><th>YoY %</th><th>Primary Broadcaster(s)</th><th># Games</th><th>Broadcast Type</th><th>Key Note</th></tr></thead><tbody><tr class=""><td>2,006</td><td>6.4</td><td>—</td><td>—</td><td>NFL Network</td><td>8</td><td>Cable only</td><td>Early exclusive games on NFLN; limited reach ~40M HH</td></tr><tr class="alt"><td>2,007</td><td>7.2</td><td>0.8</td><td>12.5%</td><td>NFL Network</td><td>8</td><td>Cable only</td><td>Seven games in primetime; flex scheduling introduced</td></tr><tr class=""><td>2,008</td><td>7.5</td><td>0.3</td><td>4.2%</td><td>NFL Network</td><td>8</td><td>Cable only</td><td>Comcast dispute hurts reach; ~55M HH</td></tr><tr class="alt"><td>2,009</td><td>7.8</td><td>0.3</td><td>0.04</td><td>NFL Network</td><td>8</td><td>Cable only</td><td>Comcast deal resolved mid-season; reach improved</td></tr><tr class=""><td>2,010</td><td>8.1</td><td>0.3</td><td>3.8%</td><td>NFL Network</td><td>8</td><td>Cable only</td><td>70M+ HH now; ratings benefit from wider reach</td></tr><tr class="alt"><td>2,011</td><td>8.4</td><td>30.0%</td><td>3.7%</td><td>NFL Network</td><td>8</td><td>Cable only</td><td>Stable growth; lockout-shortened offseason</td></tr><tr class=""><td>2,012</td><td>8.7</td><td>30.0%</td><td>3.6%</td><td>NFL Network</td><td>8</td><td>Cable only</td><td>Continued growth; NFLN carries all 8 games</td></tr><tr class="alt"><td>2,013</td><td>7.06</td><td>-1.64</td><td>-18.9%</td><td>NFL Network</td><td>8</td><td>Cable only</td><td>Drop; production issues; replaced by CBS deal</td></tr><tr class=""><td>2,014</td><td>12.5</td><td>5.45</td><td>77.2%</td><td>CBS + NFL Network</td><td>16</td><td>Broadcast + Cable</td><td>CBS simulcast 8 games; 11.8M avg on combined; 7.06M NFLN-only</td></tr><tr class="alt"><td>2,015</td><td>13.5</td><td>0.98</td><td>7.8%</td><td>CBS + NFL Network</td><td>16</td><td>Broadcast + Cable</td><td>Best pre-Amazon TNF season; CBS yr 2 simulcast</td></tr><tr class=""><td>2,016</td><td>13.4</td><td>-10.0%</td><td>-0.7%</td><td>CBS+NBC+NFL Network</td><td>16</td><td>Broadcast + Cable</td><td>CBS & NBC each took 4 games; NFLN all 16</td></tr><tr class="alt"><td>2,017</td><td>12.5</td><td>-86.0%</td><td>-6.4%</td><td>CBS+NBC+NFL Network</td><td>16</td><td>Broadcast + Cable</td><td>Amazon streamed 11 games; ratings slipped</td></tr><tr class=""><td>2,018</td><td>13.4</td><td>89.0%</td><td>7.1%</td><td>FOX + NFL Network</td><td>16</td><td>Broadcast + Cable</td><td>FOX took over; Prime Video added Thursday stream</td></tr><tr class="alt"><td>2,019</td><td>13.7</td><td>0.23</td><td>1.7%</td><td>FOX + NFL Network</td><td>16</td><td>Broadcast + Cable</td><td>Peak FOX era; all-time #2 pre-Amazon season</td></tr><tr class=""><td>2,020</td><td>13.2</td><td>-45.0%</td><td>-3.3%</td><td>FOX + NFL Network</td><td>16</td><td>Broadcast + Cable</td><td>COVID season; bubble games; near-record ratings</td></tr><tr class="alt"><td>2,021</td><td>13.3</td><td>14.0%</td><td>1.1%</td><td>FOX + NFL Network</td><td>16</td><td>Broadcast + Cable</td><td>Last full season of FOX+NFLN co-package</td></tr><tr class=""><td>2,022</td><td>9.58</td><td>-3.76</td><td>-28.2%</td><td>Amazon Prime Video</td><td>15</td><td>Streaming exclusive</td><td>Amazon exclusive; -28% vs 2021; adjustment period</td></tr><tr class="alt"><td>2,023</td><td>11.9</td><td>2.28</td><td>23.8%</td><td>Amazon Prime Video</td><td>15</td><td>Streaming exclusive</td><td>Amazon yr 2; +24% rebound; Vikings-Eagles 15.1M peak</td></tr><tr class=""><td>2,024</td><td>13.2</td><td>1.34</td><td>11.3%</td><td>Amazon Prime Video</td><td>15</td><td>Streaming exclusive</td><td>Amazon yr 3; +11%; NFL NFLN no longer carries TNF</td></tr><tr class="alt"><td>2,025</td><td>15.3</td><td>2.13</td><td>16.1%</td><td>Amazon Prime Video</td><td>15</td><td>Streaming exclusive</td><td>All-time TNF record 15.33M avg; +16% YoY; 122M unique viewers</td></tr></tbody></table></div>
+  </section>
+
+  <section id="rights">
+    <div class="section-title">National TV &amp; Media Rights Revenue</div>
+    <div class="section-sub">NFL National TV & Media Rights Revenue by Deal (2014–2033) | Sources: NFL.com / Sports Business Journal / Industry Reports</div>
+    <div class="table-wrap"><table class="dt"><thead><tr><th>Partner</th><th>Package</th><th>Start</th><th>End</th><th>Annual Value ($M)</th><th>Term (Yrs)</th><th>Total Deal Value ($M)</th><th>Key Rights Included</th><th>Notes</th></tr></thead><tbody><tr class=""><td>CBS</td><td>AFC Sunday</td><td>2,014</td><td>2,033</td><td>1,050</td><td>10</td><td>21,000</td><td>AFC Sunday afternoon games; simulcast on Paramount+</td><td>Extended through 2033</td></tr><tr class="alt"><td>FOX</td><td>NFC Sunday</td><td>2,014</td><td>2,033</td><td>1,100</td><td>10</td><td>22,000</td><td>NFC Sunday afternoon; Super Bowl rotation; Tubi digital</td><td>Best package; #1 rated NFL window</td></tr><tr class=""><td>NBC</td><td>Sunday Night Football</td><td>2,014</td><td>2,033</td><td>950</td><td>10</td><td>19,000</td><td>SNF primetime; Super Bowl rotation; Peacock exclusive game</td><td>#1 primetime show 16 consecutive seasons</td></tr><tr class="alt"><td>ESPN/ABC</td><td>Monday Night Football</td><td>2,014</td><td>2,033</td><td>1,900</td><td>11</td><td>38,000</td><td>MNF on ESPN; ABC simulcasts; 2 Super Bowls; ESPN+</td><td>Highest single-deal value</td></tr><tr class=""><td>Amazon Prime Video</td><td>Thursday Night Football</td><td>2,022</td><td>2,033</td><td>1,300</td><td>11</td><td>15,600</td><td>Exclusive streaming TNF; 15 games/season; NFL+ sub-license</td><td>First exclusive streaming package; $1.3B/yr</td></tr><tr class="alt"><td>DirecTV</td><td>NFL Sunday Ticket</td><td>2,023</td><td>2,029</td><td>2,500</td><td>7</td><td>17,500</td><td>Out-of-market Sunday games package (YouTube TV from 2023)</td><td>YouTube TV/Primetime Channel took over from DirecTV</td></tr><tr class=""><td>YouTube TV</td><td>NFL Sunday Ticket</td><td>2,023</td><td>2,033</td><td>2,000</td><td>11</td><td>22,000</td><td>Out-of-market Sunday afternoon games streaming</td><td>Replaced DirecTV; ~$2B/yr to NFL</td></tr><tr class="alt"><td>Netflix</td><td>Christmas Day Games</td><td>2,025</td><td>2,030</td><td>150</td><td>6</td><td>900</td><td>2 Christmas Day games per season</td><td>Historic first exclusive Netflix NFL games</td></tr><tr class=""><td>NFL Network</td><td>Preseason + Sat Late Season</td><td>2,003</td><td>2,026</td><td>100</td><td>23</td><td>2,400</td><td>All 65 preseason games; Saturday late-season; NFL RedZone</td><td>Sold to ESPN 2025/26; ~$1.2B/yr carriage total</td></tr><tr class="alt"><td>TOTAL ANNUAL VALUE</td><td></td><td></td><td></td><td>11,050</td><td></td><td>158,400.0</td><td></td><td></td></tr></tbody></table></div>
+  </section>
+
+  <section id="nflplus">
+    <div class="section-title">NFL+ Streaming Service Analytics</div>
+    <div class="section-sub">NFL+ Streaming Service Analytics (2022–2025) | Sources: NFL press releases / industry estimates</div>
+    <div class="table-wrap"><table class="dt"><thead><tr><th>Year</th><th>NFL+ Launch/Update</th><th>Price ($/mo)</th><th>Price Premium ($/mo)</th><th>Key Content</th><th>Platform Reach</th><th>Streaming Milestone</th><th>Note</th></tr></thead><tbody><tr class=""><td>2,022</td><td>NFL+ launched Aug 2022</td><td>4.99</td><td>9.99</td><td>Live local/primetime mobile games; NFL Network; NFL RedZone (Premium)</td><td>iOS, Android, tablets</td><td>Replaced NFL Game Pass domestic</td><td>Entry-level mobile-only streaming product</td></tr><tr class="alt"><td>2,023</td><td>NFL+ expanded to all devices</td><td>4.99</td><td>9.99</td><td>All mobile content + game replays; condensed games; all-22 film (Premium)</td><td>All devices added</td><td>Full game replays unlocked for all subscribers</td><td>Available bundled with ESPN products</td></tr><tr class=""><td>2,024</td><td>NFL+ Premium bundled with ESPN</td><td>7.99</td><td>14.0</td><td>Full device game access; RedZone; replays; coaches film; ESPN+ integration</td><td>All devices + ESPN bundle</td><td>ESPN bundle deal; expanded rights</td><td>Bundle pricing with ESPN Unlimited</td></tr><tr class="alt"><td>2,025</td><td>NFL+ continues; NFL sold NFLN to ESPN</td><td>7.99</td><td>14.0</td><td>Full live access via NFLN (now ESPN); Sunday Ticket streaming; all 32 preseason games</td><td>All devices; ESPN integration</td><td>NFLN-ESPN merger completed; NFL+ content expanded</td><td>ESPN acquired NFLN/RedZone Aug 2025</td></tr><tr class=""><td>NFL Streaming Viewership Milestones</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="alt"><td>Year</td><td>Platform</td><td>Event</td><td>Avg Viewers (M)</td><td>Context / Record</td><td></td><td></td><td></td></tr><tr class=""><td>2,023</td><td>Amazon Prime Video</td><td>Thursday Night Football full season</td><td>11.9</td><td>First TNF season >10M on streaming</td><td></td><td></td><td></td></tr><tr class="alt"><td>2,024</td><td>Peacock (NBC)</td><td>Chiefs vs. Dolphins Wild Card</td><td>22.9</td><td>Most-watched streaming event in history at time</td><td></td><td></td><td></td></tr><tr class=""><td>2,024</td><td>Peacock (NBC)</td><td>Packers vs. Eagles regular season</td><td>14.2</td><td>2nd most-watched live event on Peacock</td><td></td><td></td><td></td></tr><tr class="alt"><td>2,024</td><td>Amazon Prime Video</td><td>Thursday Night Football full season</td><td>13.2</td><td>+11% YoY; best Amazon TNF season to date (at time)</td><td></td><td></td><td></td></tr><tr class=""><td>2,025</td><td>Netflix</td><td>Christmas Day NFL games</td><td>24</td><td>Netflix most-watched live sports event ever</td><td></td><td></td><td></td></tr><tr class="alt"><td>2,025</td><td>Amazon Prime Video</td><td>Thursday Night Football full season</td><td>15.3</td><td>All-time TNF record across all 20 years; +16% YoY</td><td></td><td></td><td></td></tr><tr class=""><td>2,025</td><td>Amazon Prime Video</td><td>Total unique TNF viewers</td><td>122</td><td>M unique viewers; +50M since 2022 launch</td><td></td><td></td><td></td></tr></tbody></table></div>
+  </section>
+
+</main>
+<footer>NFL Network Analytics · Converted from XLSX · Data: Nielsen, SNL Kagan, NFL filings, Sports Media Watch</footer>
+</body>
+</html>

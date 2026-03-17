@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WWE Network Analytics</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --wwe-red: #c8102e;
+    --wwe-dark: #111;
+    --wwe-gold: #f0c040;
+    --bg: #f5f5f5;
+    --card-bg: #fff;
+    --border: #ddd;
+    --text: #222;
+    --muted: #666;
+    --head-bg: #1a1a1a;
+  }
+  body { font-family: Arial, Helvetica, sans-serif; background: var(--bg); color: var(--text); font-size: 13px; }
+  header {
+    background: var(--wwe-dark);
+    color: #fff;
+    padding: 28px 40px 20px;
+    border-bottom: 4px solid var(--wwe-red);
+  }
+  header h1 { font-size: 26px; letter-spacing: 1px; text-transform: uppercase; }
+  header h1 span { color: var(--wwe-red); }
+  header p { color: #aaa; margin-top: 6px; font-size: 12px; }
+  nav {
+    background: var(--wwe-red);
+    display: flex;
+    gap: 2px;
+    padding: 0 40px;
+    overflow-x: auto;
+  }
+  nav a {
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 18px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    white-space: nowrap;
+    opacity: .85;
+    transition: opacity .15s, background .15s;
+  }
+  nav a:hover { opacity:1; background: rgba(0,0,0,.2); }
+  main { max-width: 1400px; margin: 0 auto; padding: 32px 24px; }
+  section { margin-bottom: 40px; }
+  .section-title {
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--wwe-dark);
+    border-left: 4px solid var(--wwe-red);
+    padding-left: 12px;
+    margin-bottom: 6px;
+  }
+  .section-sub { color: var(--muted); font-size: 11px; margin-bottom: 14px; padding-left: 16px; }
+  .table-wrap { overflow-x: auto; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  table.dt { width: 100%; border-collapse: collapse; background: var(--card-bg); font-size: 12px; }
+  table.dt thead tr { background: var(--head-bg); color: #fff; }
+  table.dt th { padding: 9px 11px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; white-space: nowrap; }
+  table.dt td { padding: 8px 11px; border-bottom: 1px solid #eee; vertical-align: top; }
+  table.dt tr.alt td { background: #fafafa; }
+  table.dt tbody tr:hover td { background: #fff5f7; }
+  table.dt td:first-child { font-weight: 600; }
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 10px;
+  }
+  .kpi-card {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 20px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.1);
+    border-top: 3px solid var(--wwe-red);
+    text-align: center;
+  }
+  .kpi-val { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .kpi-lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 4px; font-weight: bold; }
+  .kpi-note { font-size: 10px; color: #999; }
+  footer { text-align:center; padding: 24px; color: #aaa; font-size: 11px; border-top: 1px solid var(--border); margin-top: 20px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>WWE <span>Network</span> Analytics</h1>
+  <p>Standalone streaming service · Feb 2014 – Jan 2021 (US migrated to Peacock) · Sources: WWE SEC Filings &amp; Earnings Reports</p>
+</header>
+<nav>
+  <a href="#kpi">KPI Dashboard</a>
+  <a href="#subs">Subscriber History</a>
+  <a href="#financials">Annual Financials</a>
+  <a href="#analytics">Subscriber Analytics</a>
+  <a href="#wrestlemania">WrestleMania Impact</a>
+</nav>
+<main>
+
+  <section id="kpi">
+    <div class="section-title">KPI Dashboard</div>
+    <div class="section-sub">WWE Network — Business Analytics Summary</div>
+    <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-val" style="color:#c8102e">1.787M</div>
+      <div class="kpi-lbl">All-Time Peak Avg Subs</div>
+      <div class="kpi-note">Q1 2018 (WM 34)</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-val" style="color:#000000">2.10M</div>
+      <div class="kpi-lbl">Peak Total Subs</div>
+      <div class="kpi-note">WM 36 Day-After</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-val" style="color:#c8102e">$9.99/mo</div>
+      <div class="kpi-lbl">Subscription Price</div>
+      <div class="kpi-note">Held 2014–2021</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-val" style="color:#000000">175+</div>
+      <div class="kpi-lbl">Countries Available</div>
+      <div class="kpi-note">At peak coverage</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-val" style="color:#c8102e">~$213M</div>
+      <div class="kpi-lbl">Est. Annual Sub Rev (Peak)</div>
+      <div class="kpi-note">2018 est. (12× avg)</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-val" style="color:#000000">$1B+</div>
+      <div class="kpi-lbl">Peacock Deal Value</div>
+      <div class="kpi-note">5-Year Deal (2021)</div>
+    </div></div>
+  </section>
+
+  <section id="subs">
+    <div class="section-title">Quarterly Subscriber History</div>
+    <div class="section-sub">WWE Network – Quarterly Subscriber History (2014–2021) | Sources: WWE SEC Filings & Earnings Reports</div>
+    <div class="table-wrap"><table class="dt"><thead><tr><th>Year</th><th>Quarter</th><th>Avg Paid Subs (000s)</th><th>End-Period Subs (000s)</th><th>QoQ Change (000s)</th><th>QoQ % Change</th><th>US Subs (000s)</th><th>Intl Subs (000s)</th><th>Key Event / Note</th></tr></thead><tbody><tr class=""><td>2,014</td><td>Q1</td><td></td><td>667</td><td>—</td><td>—</td><td></td><td></td><td>Launch Feb 24; WrestleMania XXX drove initial subs</td></tr><tr class="alt"><td>2,014</td><td>Q2</td><td>665</td><td>700</td><td>—</td><td>—</td><td>580</td><td>85</td><td>6-month commitment dropped Oct; free preview offered</td></tr><tr class=""><td>2,014</td><td>Q3</td><td>700</td><td>731</td><td>35</td><td>5.3%</td><td>620</td><td>80</td><td>International expansion begins (UK delayed)</td></tr><tr class="alt"><td>2,014</td><td>Q4</td><td>736</td><td>893</td><td>36</td><td>5.1%</td><td>740</td><td>100</td><td>Reached 893K by year-end; UK launch delayed</td></tr><tr class=""><td>2,015</td><td>Q1</td><td>1,316</td><td>1,315</td><td>580</td><td>78.8%</td><td>1,100</td><td>215</td><td>WrestleMania 31; hit 1M milestone Jan 27, 2015</td></tr><tr class="alt"><td>2,015</td><td>Q2</td><td>1,215</td><td>1,227</td><td>-101</td><td>-7.7%</td><td>1,000</td><td>215</td><td>Post-WM dropoff; UK/Ireland launched</td></tr><tr class=""><td>2,015</td><td>Q3</td><td>1,154</td><td>1,150</td><td>-61</td><td>-5.0%</td><td>950</td><td>200</td><td>Stable; expanded to Middle East, Africa, India</td></tr><tr class="alt"><td>2,015</td><td>Q4</td><td>1,237</td><td>1,238</td><td>83</td><td>7.2%</td><td>1,030</td><td>207</td><td>14% YoY growth; Germany/Japan announced for 2016</td></tr><tr class=""><td>2,016</td><td>Q1</td><td>1,444</td><td>1,500</td><td>207</td><td>16.7%</td><td>1,160</td><td>340</td><td>WrestleMania 32 record 101,763 attendance</td></tr><tr class="alt"><td>2,016</td><td>Q2</td><td>1,520</td><td>1,468</td><td>76</td><td>5.3%</td><td>1,290</td><td>380</td><td>Record avg subs; 1.82M total at WM peak; 9.9% churn</td></tr><tr class=""><td>2,016</td><td>Q3</td><td>1,490</td><td>1,481</td><td>-30</td><td>-2.0%</td><td>1,100</td><td>381</td><td>Sequential decline as expected post-WM</td></tr><tr class="alt"><td>2,016</td><td>Q4</td><td>1,410</td><td>1,500</td><td>-80</td><td>-5.4%</td><td>1,100</td><td>400</td><td>Full-year record revenue $729.2M; 1.5M paid at Jan 31</td></tr><tr class=""><td>2,017</td><td>Q1</td><td>1,480</td><td>1,534</td><td>70</td><td>5.0%</td><td>1,100</td><td>400</td><td>WrestleMania 33; guidance 1.48M avg; Jan 31 = 1.5M</td></tr><tr class="alt"><td>2,017</td><td>Q2</td><td>1,661</td><td>1,700</td><td>181</td><td>12.2%</td><td>1,200</td><td>461</td><td>1.949M total subs announced in April; WM boost</td></tr><tr class=""><td>2,017</td><td>Q3</td><td>1,500</td><td>1,501</td><td>-161</td><td>-9.7%</td><td>1,100</td><td>401</td><td>Decline from WM peak; Raw moves to USA Network</td></tr><tr class="alt"><td>2,017</td><td>Q4</td><td>1,489</td><td>1,480</td><td>-11</td><td>-0.7%</td><td>1,087</td><td>393</td><td>SmackDown on FOX deal not yet announced</td></tr><tr class=""><td>2,018</td><td>Q1</td><td>1,787</td><td>1,810</td><td>298</td><td>20.0%</td><td>1,290</td><td>497</td><td>All-time high avg subs; WrestleMania 34</td></tr><tr class="alt"><td>2,018</td><td>Q2</td><td>1,740</td><td>1,700</td><td>-47</td><td>-2.6%</td><td>1,230</td><td>470</td><td>Slight decline post-WM; strong YoY</td></tr><tr class=""><td>2,018</td><td>Q3</td><td>1,660</td><td>1,633</td><td>-80</td><td>-4.6%</td><td>1,180</td><td>453</td><td>TV ratings pressure; FOX deal announced Oct</td></tr><tr class="alt"><td>2,018</td><td>Q4</td><td>1,580</td><td>1,578</td><td>-80</td><td>-4.8%</td><td>1,130</td><td>448</td><td>Peacock deal not yet; SmackDown FOX announced</td></tr><tr class=""><td>2,019</td><td>Q1</td><td>1,662</td><td>1,700</td><td>82</td><td>5.2%</td><td>1,180</td><td>482</td><td>WrestleMania 35; SmackDown moves to FOX in Oct</td></tr><tr class="alt"><td>2,019</td><td>Q2</td><td>1,700</td><td>1,680</td><td>38</td><td>2.3%</td><td>1,200</td><td>480</td><td>Down 6% YoY; expected Q3 decline to 1.53M</td></tr><tr class=""><td>2,019</td><td>Q3</td><td>1,530</td><td>1,547</td><td>-170</td><td>-0.1</td><td>1,120</td><td>427</td><td>Down 8% YoY; Crown Jewel (Saudi) Q4 guidance</td></tr><tr class="alt"><td>2,019</td><td>Q4</td><td>1,389</td><td>1,459</td><td>-141</td><td>-9.2%</td><td>1,050</td><td>409</td><td>Year-end paid 1.389M; 70K free subs; lowest since '16</td></tr><tr class=""><td>2,020</td><td>Q1</td><td>1,460</td><td>2,100</td><td>71</td><td>5.1%</td><td>1,050</td><td>410</td><td>COVID free trial boosted total to 2.1M; WM 36 no crowd</td></tr><tr class="alt"><td>2,020</td><td>Q2</td><td>1,660</td><td>1,690</td><td>200</td><td>13.7%</td><td>1,200</td><td>460</td><td>Down 1.5% YoY; subs 1.69M end-period (+6% QoQ)</td></tr><tr class=""><td>2,020</td><td>Q3</td><td>1,640</td><td>1,600</td><td>-20</td><td>-1.2%</td><td>1,180</td><td>420</td><td>Gradual recovery; live events still cancelled</td></tr><tr class="alt"><td>2,020</td><td>Q4</td><td>1,500</td><td>1,500</td><td>-140</td><td>-8.5%</td><td>1,075</td><td>425</td><td>1.5M subs Oct 30, 2020; Peacock deal announced Jan 2021</td></tr><tr class=""><td>2,021</td><td>Q1</td><td></td><td></td><td>—</td><td>—</td><td></td><td></td><td>US migrated to Peacock March 18, 2021 (pre-WM 37)</td></tr></tbody></table></div>
+  </section>
+
+  <section id="financials">
+    <div class="section-title">Annual Financials</div>
+    <div class="section-sub">WWE Network & Company Financials (2014–2022) | Sources: WWE Annual Reports / SEC 10-K Filings</div>
+    <div class="table-wrap"><table class="dt"><thead><tr><th>Year</th><th>Total WWE Revenue ($M)</th><th>Network Segment Revenue ($M)</th><th>Network % of Total Rev</th><th>Live Events Revenue ($M)</th><th>Media Rights Revenue ($M)</th><th>Consumer Products ($M)</th><th>Net Income ($M)</th><th>Key Milestone</th></tr></thead><tbody><tr class=""><td>2,014</td><td>542.4</td><td>43.1</td><td>7.9%</td><td>148.1</td><td>185.3</td><td>113.3</td><td></td><td>WWE Network launched Feb 24; year 1</td></tr><tr class="alt"><td>2,015</td><td>658.8</td><td>149.8</td><td>22.7%</td><td>129</td><td>245.8</td><td>126.2</td><td></td><td>Network breakeven; intl expansion</td></tr><tr class=""><td>2,016</td><td>729.2</td><td>186.5</td><td>25.6%</td><td>130.1</td><td>282.5</td><td>121.7</td><td></td><td>Record rev; 1.5M+ avg subs</td></tr><tr class="alt"><td>2,017</td><td>800.8</td><td>193</td><td>24.1%</td><td>122.4</td><td>350</td><td>126.7</td><td></td><td>SmackDown brand split restored</td></tr><tr class=""><td>2,018</td><td>930.2</td><td>210</td><td>22.6%</td><td>134</td><td>446.5</td><td>131</td><td></td><td>Record OIBDA; FOX SmackDown announced</td></tr><tr class="alt"><td>2,019</td><td>1,003.2</td><td>211.5</td><td>21.1%</td><td>131.2</td><td>514.1</td><td>137.8</td><td></td><td>FOX SmackDown deal; new TV rights era</td></tr><tr class=""><td>2,020</td><td>974.2</td><td>202.7</td><td>20.8%</td><td>17.7</td><td>607</td><td>133.9</td><td></td><td>COVID; no live events; Peacock deal signed</td></tr><tr class="alt"><td>2,021</td><td>1,096.5</td><td></td><td>N/A (Peacock)</td><td>57.8</td><td>718.3</td><td>141</td><td></td><td>Peacock deal; Network US discontinued Mar 18</td></tr><tr class=""><td>2,022</td><td>1,299.6</td><td></td><td>N/A (Peacock)</td><td>142.1</td><td>844.9</td><td>146.5</td><td></td><td>Record revenue; TKO merger discussions</td></tr></tbody></table></div>
+  </section>
+
+  <section id="analytics">
+    <div class="section-title">Subscriber Analytics</div>
+    <div class="section-sub">WWE Network – Derived Subscriber Analytics | $9.99/mo US price</div>
+    <div class="table-wrap"><table class="dt"><thead><tr><th>Year</th><th>Avg Paid Subs (000s)</th><th>Est. Annual Sub Revenue ($M)</th><th>Estimated ARPU/mo ($)</th><th>Annual Subscriber Growth %</th><th>Peak Quarter Subs (000s)</th><th>Trough Quarter Subs (000s)</th><th>Seasonal Swing (Peak–Trough)</th></tr></thead><tbody><tr class=""><td>2,014</td><td>698</td><td>83.7</td><td>9.99</td><td>—</td><td>893</td><td>667</td><td>226</td></tr><tr class="alt"><td>2,015</td><td>1,230</td><td>147.5</td><td>9.99</td><td>76.2%</td><td>1,316</td><td>1,154</td><td>162</td></tr><tr class=""><td>2,016</td><td>1,466</td><td>175.7</td><td>9.99</td><td>19.2%</td><td>1,520</td><td>1,410</td><td>110</td></tr><tr class="alt"><td>2,017</td><td>1,582</td><td>189.7</td><td>9.99</td><td>7.9%</td><td>1,661</td><td>1,480</td><td>181</td></tr><tr class=""><td>2,018</td><td>1,692</td><td>202.8</td><td>9.99</td><td>7.0%</td><td>1,787</td><td>1,580</td><td>207</td></tr><tr class="alt"><td>2,019</td><td>1,570</td><td>188.2</td><td>9.99</td><td>-7.2%</td><td>1,700</td><td>1,389</td><td>311</td></tr><tr class=""><td>2,020</td><td>1,565</td><td>187.6</td><td>9.99</td><td>-0.3%</td><td>1,660</td><td>1,389</td><td>271</td></tr><tr class="alt"><td>Note: Est. Annual Sub Revenue = Avg Paid Subs × $9.99/mo × 12 months. Actual WWE-reported 'Network segment' revenue also includes PPV/VOD revenue from cable providers and is therefore higher than pure subscription math. Peacock deal (2021) paid WWE a reported $1B+ over 5 years replacing standalone US subscriptions.</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+  </section>
+
+  <section id="wrestlemania">
+    <div class="section-title">WrestleMania Subscriber Spike Analysis</div>
+    <div class="section-sub">WrestleMania Subscriber Spike Analysis (2014–2021) | Sources: WWE Earnings Reports</div>
+    <div class="table-wrap"><table class="dt"><thead><tr><th>Year</th><th>WrestleMania</th><th>Quarter</th><th>Avg Paid Subs (000s)</th><th>Peak Subs Day-After (000s)</th><th>Subscriber Spike (000s)</th><th>Attendance</th><th>Key Stat</th></tr></thead><tbody><tr class=""><td>2,014</td><td>WrestleMania XXX</td><td>Q2</td><td>665</td><td>667</td><td>2</td><td>75,167</td><td>New Orleans; Undertaker streak ends</td></tr><tr class="alt"><td>2,015</td><td>WrestleMania 31</td><td>Q1</td><td>1,316</td><td>1,350</td><td>34</td><td>76,976</td><td>Santa Clara; first WM in Q1</td></tr><tr class=""><td>2,016</td><td>WrestleMania 32</td><td>Q2</td><td>1,520</td><td>1,820</td><td>300</td><td>101,763</td><td>Record crowd AT&T Stadium; 1.82M total subs April 4</td></tr><tr class="alt"><td>2,017</td><td>WrestleMania 33</td><td>Q2</td><td>1,661</td><td>1,750</td><td>89</td><td>75,245</td><td>Orlando; Goldberg vs. Brock</td></tr><tr class=""><td>2,018</td><td>WrestleMania 34</td><td>Q1</td><td>1,787</td><td>1,900</td><td>113</td><td>78,133</td><td>New Orleans; all-time avg sub record Q1</td></tr><tr class="alt"><td>2,019</td><td>WrestleMania 35</td><td>Q2</td><td>1,700</td><td>2,000</td><td>300</td><td>82,265</td><td>NJ Meadowlands; first women's main event</td></tr><tr class=""><td>2,020</td><td>WrestleMania 36</td><td>Q1</td><td>1,460</td><td>2,100</td><td>640</td><td>Performance Ctr</td><td>COVID bubble; 2.1M total subs (640K free trial)</td></tr><tr class="alt"><td>2,021</td><td>WrestleMania 37</td><td>Q1</td><td></td><td></td><td></td><td>25,000</td><td>Tampa; first WM with crowd since 2019; moved to Peacock</td></tr></tbody></table></div>
+  </section>
+
+</main>
+<footer>WWE Network Analytics · Converted from XLSX · Data: WWE SEC Filings &amp; Earnings Reports</footer>
+</body>
+</html>

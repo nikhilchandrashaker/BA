@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brand Intelligence — Marketing Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg: #0b0b0f;
+  --surface: #111118;
+  --border: rgba(255,255,255,0.07);
+  --text: #f0ede8;
+  --muted: rgba(240,237,232,0.45);
+  --syne: 'Syne', sans-serif;
+  --dm: 'DM Sans', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--dm);
+  font-size: 14px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,11,15,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 0;
+  padding: 0 28px;
+  height: 56px;
+}
+.topbar-logo {
+  font-family: var(--syne);
+  font-size: 13px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted);
+  margin-right: 32px;
+  white-space: nowrap;
+}
+.topbar-logo span { color: var(--text); }
+.brand-tabs {
+  display: flex; gap: 2px; flex: 1;
+}
+.brand-tab {
+  position: relative;
+  padding: 0 20px;
+  height: 55px;
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--syne);
+  font-size: 12px; font-weight: 600;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted);
+  background: transparent; border: none;
+  cursor: pointer;
+  transition: color .2s;
+  white-space: nowrap;
+}
+.brand-tab::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: currentColor;
+  transform: scaleX(0);
+  transition: transform .2s;
+}
+.brand-tab:hover { color: rgba(240,237,232,0.75); }
+.brand-tab.active { color: var(--brand-color, #fff); }
+.brand-tab.active::after { transform: scaleX(1); }
+.tab-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+/* ── BRAND PANELS ── */
+.brand-panel { display: none; }
+.brand-panel.active { display: block; }
+
+/* ── HERO STRIP ── */
+.hero-strip {
+  padding: 48px 28px 32px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset: 0;
+  opacity: 0.04;
+  background: radial-gradient(ellipse 80% 60% at 80% 50%, var(--brand-color, #fff), transparent);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  font-family: var(--syne);
+  font-size: 10px; font-weight: 700;
+  letter-spacing: .2em; text-transform: uppercase;
+  color: var(--brand-color, #fff);
+  margin-bottom: 10px;
+}
+.hero-title {
+  font-family: var(--syne);
+  font-size: clamp(36px, 6vw, 72px);
+  font-weight: 800;
+  line-height: .95;
+  letter-spacing: -.02em;
+  color: var(--text);
+  margin-bottom: 14px;
+}
+.hero-title em { color: var(--brand-color); font-style: normal; }
+.hero-desc {
+  font-family: var(--dm);
+  font-size: 14px; font-weight: 300;
+  color: var(--muted);
+  max-width: 560px;
+  line-height: 1.7;
+}
+.hero-date {
+  position: absolute; top: 48px; right: 28px;
+  font-family: var(--syne);
+  font-size: 10px; font-weight: 600;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── KPI RAIL ── */
+.kpi-rail {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-bottom: 1px solid var(--border);
+}
+.kpi {
+  padding: 24px 28px;
+  border-right: 1px solid var(--border);
+  position: relative;
+}
+.kpi:last-child { border-right: none; }
+.kpi-label {
+  font-family: var(--syne);
+  font-size: 9px; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.kpi-value {
+  font-family: var(--syne);
+  font-size: 32px; font-weight: 800;
+  line-height: 1;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.kpi-delta {
+  font-size: 12px; font-weight: 500;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.kpi-delta.up { color: #4caf82; }
+.kpi-delta.down { color: #e05f5f; }
+.kpi-bar {
+  position: absolute; bottom: 0; left: 28px; right: 28px;
+  height: 2px;
+  background: var(--border);
+  border-radius: 1px;
+  overflow: hidden;
+}
+.kpi-bar-fill {
+  height: 100%;
+  background: var(--brand-color);
+  border-radius: 1px;
+  transition: width 1s cubic-bezier(.16,1,.3,1);
+}
+
+/* ── CONTENT GRID ── */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.content-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.card {
+  background: var(--bg);
+  padding: 28px;
+}
+.card-full {
+  grid-column: 1 / -1;
+  background: var(--bg);
+  padding: 28px;
+  border-top: 1px solid var(--border);
+}
+.card-label {
+  font-family: var(--syne);
+  font-size: 10px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--brand-color);
+  margin-bottom: 4px;
+}
+.card-title {
+  font-family: var(--syne);
+  font-size: 17px; font-weight: 700;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+.chart-wrap {
+  position: relative;
+  width: 100%; height: 220px;
+}
+.chart-wrap-sm { height: 180px; }
+.chart-wrap-lg { height: 260px; }
+
+/* ── INSIGHT CARDS ── */
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 20px;
+}
+.insight {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+}
+.insight-icon {
+  width: 28px; height: 28px; border-radius: 6px;
+  background: rgba(255,255,255,.05);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.insight-title {
+  font-family: var(--syne);
+  font-size: 11px; font-weight: 700;
+  color: var(--text);
+  margin-bottom: 5px;
+}
+.insight-body {
+  font-size: 12px; line-height: 1.6;
+  color: var(--muted);
+}
+
+/* ── CHANNEL TABLE ── */
+.ch-table { width: 100%; border-collapse: collapse; }
+.ch-table th {
+  font-family: var(--syne);
+  font-size: 9px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted);
+  text-align: left; padding: 0 0 10px;
+  border-bottom: 1px solid var(--border);
+}
+.ch-table th:not(:first-child) { text-align: right; }
+.ch-table td {
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px; color: var(--text);
+}
+.ch-table td:not(:first-child) { text-align: right; font-family: var(--syne); font-size: 12px; }
+.ch-table tr:last-child td { border-bottom: none; }
+.ch-platform { font-weight: 500; }
+.ch-bar-cell { width: 120px; }
+.mini-bar-bg {
+  height: 4px; background: rgba(255,255,255,.08);
+  border-radius: 2px; overflow: hidden;
+  margin-top: 4px;
+}
+.mini-bar-fill { height: 100%; border-radius: 2px; background: var(--brand-color); }
+.badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-family: var(--syne);
+  font-size: 9px; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase;
+}
+.badge-up { background: rgba(76,175,130,.15); color: #4caf82; }
+.badge-down { background: rgba(224,95,95,.15); color: #e05f5f; }
+.badge-flat { background: rgba(255,255,255,.07); color: var(--muted); }
+
+/* ── SENTIMENT DONUT LEGEND ── */
+.donut-legend {
+  display: flex; flex-direction: column; gap: 8px;
+  justify-content: center;
+}
+.dl-row { display: flex; align-items: center; gap: 10px; }
+.dl-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.dl-label { font-size: 12px; color: var(--muted); flex: 1; }
+.dl-val { font-family: var(--syne); font-size: 13px; font-weight: 700; color: var(--text); }
+.donut-row { display: flex; align-items: center; gap: 24px; }
+.donut-chart-wrap { width: 160px; height: 160px; flex-shrink: 0; position: relative; }
+.donut-center {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  pointer-events: none;
+}
+.donut-center-val {
+  font-family: var(--syne);
+  font-size: 22px; font-weight: 800;
+  color: var(--brand-color);
+}
+.donut-center-lbl {
+  font-size: 10px; color: var(--muted);
+  text-align: center; line-height: 1.3;
+}
+
+/* ── COMP TABLE ── */
+.comp-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.comp-row:last-child { border-bottom: none; }
+.comp-name { font-weight: 500; width: 140px; flex-shrink: 0; font-size: 13px; }
+.comp-bar-bg {
+  flex: 1; height: 6px;
+  background: rgba(255,255,255,.06);
+  border-radius: 3px; overflow: hidden;
+}
+.comp-bar-fill { height: 100%; border-radius: 3px; }
+.comp-val {
+  font-family: var(--syne);
+  font-size: 12px; font-weight: 700;
+  width: 42px; text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── TREND CHIPS ── */
+.trend-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.chip {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px; font-weight: 500;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  background: transparent;
+}
+.chip.hot { border-color: var(--brand-color); color: var(--brand-color); background: rgba(255,255,255,.03); }
+
+/* ── CAMPAIGN TABLE ── */
+.camp-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  gap: 0;
+}
+.camp-header {
+  display: contents;
+}
+.camp-header > div {
+  font-family: var(--syne);
+  font-size: 9px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 0 10px;
+  border-bottom: 1px solid var(--border);
+}
+.camp-header > div:not(:first-child) { text-align: right; }
+.camp-row { display: contents; }
+.camp-row > div {
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px; color: var(--text);
+  display: flex; align-items: center;
+}
+.camp-row > div:not(:first-child) {
+  justify-content: flex-end;
+  font-family: var(--syne); font-size: 12px;
+}
+.camp-row:last-child > div { border-bottom: none; }
+.camp-name { font-weight: 500; }
+
+/* ── FOOTER ── */
+.panel-footer {
+  padding: 20px 28px;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+}
+.panel-footer-note {
+  font-size: 11px; color: var(--muted);
+  font-style: italic;
+}
+.panel-footer-tag {
+  margin-left: auto;
+  font-family: var(--syne);
+  font-size: 9px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted);
+}
+
+@media (max-width: 900px) {
+  .kpi-rail { grid-template-columns: repeat(2,1fr); }
+  .content-grid, .content-grid-3 { grid-template-columns: 1fr; }
+  .insights-grid { grid-template-columns: 1fr; }
+  .camp-grid { display: block; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ TOP BAR ══ -->
+<header class="topbar">
+  <div class="topbar-logo">Brand <span>Intelligence</span></div>
+  <nav class="brand-tabs">
+    <button class="brand-tab active" data-brand="poppi" style="--brand-color:#ff6b9d" onclick="switchBrand('poppi',this)">
+      <span class="tab-dot"></span>Poppi
+    </button>
+    <button class="brand-tab" data-brand="swedish" style="--brand-color:#e8302a" onclick="switchBrand('swedish',this)">
+      <span class="tab-dot"></span>Swedish Fish
+    </button>
+    <button class="brand-tab" data-brand="subway" style="--brand-color:#00a651" onclick="switchBrand('subway',this)">
+      <span class="tab-dot"></span>Subway
+    </button>
+    <button class="brand-tab" data-brand="oreo" style="--brand-color:#d4b896" onclick="switchBrand('oreo',this)">
+      <span class="tab-dot"></span>Oreo
+    </button>
+  </nav>
+</header>
+
+<!-- ════════════════════════════════════════ POPPI ════════════════════════════════════════ -->
+<div id="panel-poppi" class="brand-panel active" style="--brand-color:#ff6b9d">
+  <div class="hero-strip">
+    <div class="hero-bg"></div>
+    <div class="hero-date">FY 2024 · Q4 Report</div>
+    <div class="hero-eyebrow">Prebiotic Soda · Better-For-You Beverage</div>
+    <div class="hero-title">Poppi<br><em>Brand Report</em></div>
+    <div class="hero-desc">Poppi has redefined the soda category with Gen Z and millennial audiences, leveraging influencer-first distribution and bold DTC growth. This report covers brand health, social performance, retail velocity, and competitive positioning.</div>
+  </div>
+
+  <div class="kpi-rail">
+    <div class="kpi">
+      <div class="kpi-label">Est. Annual Revenue</div>
+      <div class="kpi-value">$100M+</div>
+      <div class="kpi-delta up">▲ 67% YoY growth</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:82%"></div></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">TikTok Followers</div>
+      <div class="kpi-value">1.2M</div>
+      <div class="kpi-delta up">▲ 340% in 18 months</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:74%"></div></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Net Promoter Score</div>
+      <div class="kpi-value">72</div>
+      <div class="kpi-delta up">▲ +8 pts vs. prior year</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:72%"></div></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Retail Distribution</div>
+      <div class="kpi-value">60K+</div>
+      <div class="kpi-delta up">▲ Doors (Target, Whole Foods, Costco)</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:60%"></div></div>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <div class="card">
+      <div class="card-label">Revenue Trend</div>
+      <div class="card-title">Monthly Sales Velocity</div>
+      <div class="chart-wrap"><canvas id="poppi-sales"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Brand Sentiment</div>
+      <div class="card-title">Consumer Sentiment Analysis</div>
+      <div class="donut-row">
+        <div class="donut-chart-wrap">
+          <canvas id="poppi-sentiment"></canvas>
+          <div class="donut-center">
+            <div class="donut-center-val">78%</div>
+            <div class="donut-center-lbl">Positive<br>Sentiment</div>
+          </div>
+        </div>
+        <div class="donut-legend">
+          <div class="dl-row"><div class="dl-dot" style="background:#ff6b9d"></div><div class="dl-label">Positive</div><div class="dl-val">78%</div></div>
+          <div class="dl-row"><div class="dl-dot" style="background:#ffb3cc"></div><div class="dl-label">Neutral</div><div class="dl-val">14%</div></div>
+          <div class="dl-row"><div class="dl-dot" style="background:#3a1a2a"></div><div class="dl-label">Negative</div><div class="dl-val">8%</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <div class="card">
+      <div class="card-label">Channel Performance</div>
+      <div class="card-title">Social Media Engagement Rate</div>
+      <table class="ch-table">
+        <thead><tr><th>Platform</th><th>Followers</th><th>Eng. Rate</th><th>Trend</th></tr></thead>
+        <tbody>
+          <tr><td class="ch-platform">TikTok</td><td>1.2M</td><td>8.4%</td><td><span class="badge badge-up">+38%</span></td></tr>
+          <tr><td class="ch-platform">Instagram</td><td>890K</td><td>5.1%</td><td><span class="badge badge-up">+22%</span></td></tr>
+          <tr><td class="ch-platform">YouTube</td><td>142K</td><td>3.8%</td><td><span class="badge badge-up">+61%</span></td></tr>
+          <tr><td class="ch-platform">Pinterest</td><td>78K</td><td>2.2%</td><td><span class="badge badge-flat">+3%</span></td></tr>
+          <tr><td class="ch-platform">Twitter/X</td><td>64K</td><td>1.4%</td><td><span class="badge badge-down">-8%</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-label">Consumer Profile</div>
+      <div class="card-title">Core Audience Demographics</div>
+      <div class="chart-wrap"><canvas id="poppi-demo"></canvas></div>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <div class="card">
+      <div class="card-label">Competitive Landscape</div>
+      <div class="card-title">Share of Voice — Better-For-You Soda</div>
+      <div style="margin-top: 8px;">
+        <div class="comp-row"><div class="comp-name" style="color:#ff6b9d;font-weight:700">Poppi</div><div class="comp-bar-bg"><div class="comp-bar-fill" style="width:38%;background:#ff6b9d"></div></div><div class="comp-val" style="color:#ff6b9d">38%</div></div>
+        <div class="comp-row"><div class="comp-name">Olipop</div><div class="comp-bar-bg"><div class="comp-bar-fill" style="width:34%;background:#a78bfa"></div></div><div class="comp-val">34%</div></div>
+        <div class="comp-row"><div class="comp-name">Culture Pop</div><div class="comp-bar-bg"><div class="comp-bar-fill" style="width:14%;background:#60a5fa"></div></div><div class="comp-val">14%</div></div>
+        <div class="comp-row"><div class="comp-name">Waterloo</div><div class="comp-bar-bg"><div class="comp-bar-fill" style="width:8%;background:#34d399"></div></div><div class="comp-val">8%</div></div>
+        <div class="comp-row"><div class="comp-name">Other</div><div class="comp-bar-bg"><div class="comp-bar-fill" style="width:6%;background:rgba(255,255,255,.15)"></div></div><div class="comp-val">6%</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Campaign Performance</div>
+      <div class="card-title">2024 Campaign ROI by Channel</div>
+      <div class="chart-wrap"><canvas id="poppi-roi"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card-full">
+    <div class="card-label">Strategic Insights</div>
+    <div class="card-title">Key Findings & Recommendations</div>
+    <div class="insights-grid">
+      <div class="insight">
+        <div class="insight-icon">🚀</div>
+        <div class="insight-title">Super Bowl 2024 Halo Effect</div>
+        <div class="insight-body">Poppi's Super Bowl LVIII commercial drove a 312% spike in brand search queries and a 67% increase in new customer acquisition in the week following the game. Unaided awareness jumped from 18% to 31% among 18–34s.</div>
+      </div>
+      <div class="insight">
+        <div class="insight-icon">🎯</div>
+        <div class="insight-title">Influencer ROI Outperforms Paid</div>
+        <div class="insight-body">Micro and mid-tier influencer campaigns (100K–500K followers) deliver 4.2× the engagement ROI of traditional paid social. The "Soda That Loves You Back" creator-led series generated 2.1B impressions organically.</div>
+      </div>
+      <div class="insight">
+        <div class="insight-icon">📦</div>
+        <div class="insight-title">Retail Velocity Accelerating</div>
+        <div class="insight-body">Velocity per door up 34% QoQ at Target. The Costco trial pack launch drove 200K new trial households in Q3. Recommend expanding seasonal limited-edition SKUs to drive repeat purchase in grocery.</div>
+      </div>
+    </div>
+    <div class="trend-chips">
+      <div class="chip hot">#GutHealth</div>
+      <div class="chip hot">#PrebioticSoda</div>
+      <div class="chip hot">#PoppiPartner</div>
+      <div class="chip">#BetterForYou</div>
+      <div class="chip">#SodaAlternative</div>
+      <div class="chip">#DrinkPoppi</div>
+    </div>
+  </div>
+  <div class="panel-footer">
+    <div class="panel-footer-note">Data sources: Nielsen, Stackline, social platform analytics, internal sales reporting. Estimates where noted.</div>
+    <div class="panel-footer-tag">Poppi · Brand Intelligence · 2024</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ SWEDISH FISH ════════════════════════════════════════ -->
+<div id="panel-swedish" class="brand-panel" style="--brand-color:#e8302a">
+  <div class="hero-strip">
+    <div class="hero-bg"></div>
+    <div class="hero-date">FY 2024 · Full Year Report</div>
+    <div class="hero-eyebrow">Confectionery · Candy · Snacking</div>
+    <div class="hero-title">Swedish<br><em>Fish</em></div>
+    <div class="hero-desc">A perennial candy icon since 1958, Swedish Fish commands fierce loyalty in the confectionery space. This report examines purchase occasion shifts, seasonal demand cycles, digital engagement revival, and growth opportunities in the "nostalgic candy" trend wave.</div>
+  </div>
+
+  <div class="kpi-rail">
+    <div class="kpi">
+      <div class="kpi-label">US Candy Category Rank</div>
+      <div class="kpi-value">#7</div>
+      <div class="kpi-delta up">▲ +2 positions YoY</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:88%"></div></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Annual US Retail Sales</div>
+      <div class="kpi-value">$375M</div>
+      <div class="kpi-delta up">▲ +9% vs. prior year</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:70%"></div></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Brand Awareness (aided)</div>
+      <div class="kpi-value">91%</div>
+      <div class="kpi-delta flat">→ Stable, category leader</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:91%"></div></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">TikTok Mentions (2024)</div>
+      <div class="kpi-value">4.8M</div>
+      <div class="kpi-delta up">▲ Nostalgia wave driver</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:65%"></div></div>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <div class="card">
+      <div class="card-label">Seasonal Demand Index</div>
+      <div class="card-title">Monthly Sales Index (100 = avg)</div>
+      <div class="chart-wrap"><canvas id="swedish-sales"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Purchase Occasions</div>
+      <div class="card-title">Where Consumers Buy & When</div>
+      <div class="donut-row" style="margin-top:10px">
+        <div class="donut-chart-wrap">
+          <canvas id="swedish-occasions"></canvas>
+          <div class="donut-center">
+            <div class="donut-center-val">44%</div>
+            <div class="donut-center-lbl">Impulse<br>Purchase</div>
+          </div>
+        </div>
+        <div class="donut-legend">
+          <div class="dl-row"><div class="dl-dot" style="background:#e8302a"></div><div class="dl-label">Impulse</div><div class="dl-val">44%</div></div>
+          <div class="dl-row"><div class="dl-dot" style="background:#f97b74"></div><div class="dl-label">Planned</div><div class="dl-val">28%</div></div>
+          <div class="dl-row"><div class="dl-dot" style="background:#ffc2bf"></div><div class="dl-label">Gifting</div><div class="dl-val">17%</div></div>
+          <div class="dl-row"><div class="dl-dot" style="background:#3d1010"></div><div class="dl-label">Online</div><div class="dl-val">11%</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <div class="card">
+      <div class="card-label">Retail Channel Mix</div>
+      <div class="card-title">Sales by Retail Channel</div>
+      <div class="chart-wrap"><canvas id="swedish-channel"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Competitive Set</div>
+      <div class="card-title">Gummy Candy Share of Voice</div>
+      <div style="margin-top:8px">
+        <div class="comp-row"><div class="comp-name" style="color:#e8302a;font-weight:700">Swedish Fish</div><div class="comp-bar-bg"><div class="comp-bar-fill" style="width:29%;background:#e8302a"></div></div><div class="comp-val" style="color:#e8302a">29%</div></div>
+        <div class="comp-row"><div class="comp-name">Haribo</div><div class="comp-bar-bg"><div class="comp-bar-fill" style="width:24%;background:#fbbf24"></div></div><div class="comp-val">24%</div></div>
+        <div class="comp-row"><div class="comp-name">Trolli</div><div class="comp-bar-bg"><div class="comp-bar-fill" style="width:18%;background:#a78bfa"></div></div><div class="comp-val">18%</div></div>
+        <div class="comp-row"><div class="comp-name">Black Forest</div><div class="comp-bar-bg"><div class="comp-bar-fill" style="width:16%;background:#34d399"></div></div><div class="comp-val">16%</div></div>
+        <div class="comp-row"><div class="comp-name">Other</div><div class="comp-bar-bg"><div class="comp-bar-fill" style="width:13%;background:rgba(255,255,255,.15)"></div></div><div class="comp-val">13%</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <div class="card">
+      <div class="card-label">Campaign Tracker</div>
+      <div class="card-title">2024 Marketing Campaigns</div>
+      <div class="camp-grid">
+        <div class="camp-header">
+          <div>Campaign</div><div>Spend</div><div>Reach</div><div>ROI</div><div>Result</div>
+        </div>
+        <div class="camp-row">
+          <div class="camp-name">Halloween Countdown</div><div>$4.2M</div><div>88M</div><div>3.8×</div><div><span class="badge badge-up">Top</span></div>
+        </div>
+        <div class="camp-row">
+          <div class="camp-name">Valentine's Mini Bags</div><div>$1.8M</div><div>42M</div><div>2.9×</div><div><span class="badge badge-up">Strong</span></div>
+        </div>
+        <div class="camp-row">
+          <div class="camp-name">TikTok Nostalgia Series</div><div>$0.6M</div><div>61M</div><div>5.1×</div><div><span class="badge badge-up">Top</span></div>
+        </div>
+        <div class="camp-row">
+          <div class="camp-name">Summer Theater Tie-In</div><div>$2.1M</div><div>54M</div><div>2.3×</div><div><span class="badge badge-flat">Avg</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Age Cohort Analysis</div>
+      <div class="card-title">Purchase Rate by Generation</div>
+      <div class="chart-wrap"><canvas id="swedish-age"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card-full">
+    <div class="card-label">Strategic Insights</div>
+    <div class="card-title">Key Findings & Recommendations</div>
+    <div class="insights-grid">
+      <div class="insight">
+        <div class="insight-icon">🎃</div>
+        <div class="insight-title">Halloween is the Crown Jewel</div>
+        <div class="insight-body">October alone accounts for 31% of annual revenue. The Halloween sell-through rate reached 94% in mass retail. Recommend earlier September in-store placement and a limited "Witch's Brew" dark berry variant to extend the season.</div>
+      </div>
+      <div class="insight">
+        <div class="insight-icon">📱</div>
+        <div class="insight-title">Nostalgia Wave is Real & Monetizable</div>
+        <div class="insight-body">UGC content featuring Swedish Fish in "childhood snack" contexts accumulated 840M views on TikTok. This organic equity is unmined — a curated creator program and retro packaging reissue could convert nostalgia into incremental sales.</div>
+      </div>
+      <div class="insight">
+        <div class="insight-icon">🛒</div>
+        <div class="insight-title">E-Commerce Lagging — Opportunity</div>
+        <div class="insight-body">At 11% of revenue, e-commerce significantly trails the confectionery category average of 18%. Subscription bulk bags on Amazon and a branded D2C custom mix offering could close this gap and grow AOV by an estimated 2.4×.</div>
+      </div>
+    </div>
+    <div class="trend-chips">
+      <div class="chip hot">#SwedishFish</div>
+      <div class="chip hot">#CandyTok</div>
+      <div class="chip hot">#NostalgiaSnacks</div>
+      <div class="chip">#Halloween2024</div>
+      <div class="chip">#MovieTheaterCandy</div>
+      <div class="chip">#GummyCandy</div>
+    </div>
+  </div>
+  <div class="panel-footer">
+    <div class="panel-footer-note">Sources: IRI/Circana POS data, Nielsen Confectionery Report, TikTok Creative Center, internal estimates.</div>
+    <div class="panel-footer-tag">Swedish Fish · Brand Intelligence · 2024</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ SUBWAY ════════════════════════════════════════ -->
+<div id="panel-subway" class="brand-panel" style="--brand-color:#00a651">
+  <div class="hero-strip">
+    <div class="hero-bg"></div>
+    <div class="hero-date">FY 2024 · Annual Report</div>
+    <div class="hero-eyebrow">QSR · Fast Casual · 37,000+ Locations</div>
+    <div class="hero-title">Subway<br><em>Brand Report</em></div>
+    <div class="hero-desc">After the historic "Series Menu" overhaul and aggressive franchisee restructuring, Subway is fighting to reclaim fast-casual dominance. This report covers same-store sales trends, digital transformation progress, value perception metrics, and the "Eat Fresh Refresh" campaign impact.</div>
+  </div>
+
+  <div class="kpi-rail">
+    <div class="kpi">
+      <div class="kpi-label">Global System Sales</div>
+      <div class="kpi-value">$16.9B</div>
+      <div class="kpi-delta up">▲ +3.1% comparable sales</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:78%"></div></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">US Restaurant Count</div>
+      <div class="kpi-value">20,576</div>
+      <div class="kpi-delta down">▼ -2.4% net closures</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:55%"></div></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Digital Sales Mix</div>
+      <div class="kpi-value">32%</div>
+      <div class="kpi-delta up">▲ +7 pts vs. prior year</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:32%"></div></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">App Downloads (2024)</div>
+      <div class="kpi-value">28M</div>
+      <div class="kpi-delta up">▲ #2 QSR app in US</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:66%"></div></div>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <div class="card">
+      <div class="card-label">Same-Store Sales</div>
+      <div class="card-title">Comparable Sales Growth (% YoY)</div>
+      <div class="chart-wrap"><canvas id="subway-sss"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Value Perception</div>
+      <div class="card-title">Consumer Value Rating vs. Competitors</div>
+      <div style="margin-top:8px">
+        <div class="comp-row"><div class="comp-name" style="color:#00a651;font-weight:700">Subway</div><div class="comp-bar-bg"><div class="comp-bar-fill" style="width:71%;background:#00a651"></div></div><div class="comp-val" style="color:#00a651">7.1</div></div>
+        <div class="comp-row"><div class="comp-name">Jimmy John's</div><div class="comp-bar-bg"><div class="comp-bar-fill" style="width:68%;background:#fbbf24"></div></div><div class="comp-val">6.8</div></div>
+        <div class="comp-row"><div class="comp-name">Jersey Mike's</div><div class="comp-bar-bg"><div class="comp-bar-fill" style="width:74%;background:#60a5fa"></div></div><div class="comp-val">7.4</div></div>
+        <div class="comp-row"><div class="comp-name">Firehouse Subs</div><div class="comp-bar-bg"><div class="comp-bar-fill" style="width:66%;background:#f97316"></div></div><div class="comp-val">6.6</div></div>
+        <div class="comp-row"><div class="comp-name">McAlister's</div><div class="comp-bar-bg"><div class="comp-bar-fill" style="width:62%;background:#a78bfa"></div></div><div class="comp-val">6.2</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <div class="card">
+      <div class="card-label">Digital Transformation</div>
+      <div class="card-title">Digital vs. In-Store Sales Mix</div>
+      <div class="chart-wrap"><canvas id="subway-digital"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Menu Performance</div>
+      <div class="card-title">Series Menu Item Popularity Score</div>
+      <div class="chart-wrap chart-wrap-sm" style="margin-top:10px"><canvas id="subway-menu"></canvas></div>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <div class="card">
+      <div class="card-label">Sentiment Analysis</div>
+      <div class="card-title">Social Sentiment Breakdown</div>
+      <div class="donut-row">
+        <div class="donut-chart-wrap">
+          <canvas id="subway-sentiment"></canvas>
+          <div class="donut-center">
+            <div class="donut-center-val">61%</div>
+            <div class="donut-center-lbl">Positive<br>Sentiment</div>
+          </div>
+        </div>
+        <div class="donut-legend">
+          <div class="dl-row"><div class="dl-dot" style="background:#00a651"></div><div class="dl-label">Positive</div><div class="dl-val">61%</div></div>
+          <div class="dl-row"><div class="dl-dot" style="background:#6ee7b7"></div><div class="dl-label">Neutral</div><div class="dl-val">22%</div></div>
+          <div class="dl-row"><div class="dl-dot" style="background:#0d2e1a"></div><div class="dl-label">Negative</div><div class="dl-val">17%</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Daypart Analysis</div>
+      <div class="card-title">Revenue Share by Daypart</div>
+      <div class="chart-wrap"><canvas id="subway-daypart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card-full">
+    <div class="card-label">Strategic Insights</div>
+    <div class="card-title">Key Findings & Recommendations</div>
+    <div class="insights-grid">
+      <div class="insight">
+        <div class="insight-icon">📲</div>
+        <div class="insight-title">Digital Loyalty is Compounding</div>
+        <div class="insight-body">MVP Rewards members spend 28% more per visit and visit 1.8× more frequently than non-members. The app's 28M downloads now rival McDonald's as the most-used QSR app. Personalized digital offers have a 41% redemption rate vs. 12% for broad promotions.</div>
+      </div>
+      <div class="insight">
+        <div class="insight-icon">🥖</div>
+        <div class="insight-title">Series Menu Driving Trade-Up</div>
+        <div class="insight-body">The "Titan Turkey" and "The Monster" are the two top-selling Series items, each with $1.20 higher ticket than legacy subs. Customers who try Series items show 22% higher 90-day retention. Recommend dedicating more advertising budget to Series menu storytelling.</div>
+      </div>
+      <div class="insight">
+        <div class="insight-icon">⚡</div>
+        <div class="insight-title">Breakfast Remains Untapped</div>
+        <div class="insight-body">Breakfast accounts for only 11% of Subway revenue vs. 28% QSR category average. The brand's protein-forward menu and customization equity translate naturally to morning occasions. A dedicated breakfast push could add est. $400M+ in system sales within 24 months.</div>
+      </div>
+    </div>
+    <div class="trend-chips">
+      <div class="chip hot">#EatFreshRefresh</div>
+      <div class="chip hot">#SubwayApp</div>
+      <div class="chip">#MVPRewards</div>
+      <div class="chip hot">#SeriesMenu</div>
+      <div class="chip">#SubwayPartner</div>
+      <div class="chip">#QSR2024</div>
+    </div>
+  </div>
+  <div class="panel-footer">
+    <div class="panel-footer-note">Sources: Technomic QSR report, Subway FDD filings, YouGov brand tracker, app analytics estimates, internal reporting.</div>
+    <div class="panel-footer-tag">Subway · Brand Intelligence · 2024</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ OREO ════════════════════════════════════════ -->
+<div id="panel-oreo" class="brand-panel" style="--brand-color:#d4b896">
+  <div class="hero-strip">
+    <div class="hero-bg"></div>
+    <div class="hero-date">FY 2024 · Global Brand Report</div>
+    <div class="hero-eyebrow">Mondelēz International · Cookie · Global Icon Since 1912</div>
+    <div class="hero-title">Oreo<br><em>Brand Report</em></div>
+    <div class="hero-desc">The world's best-selling cookie brand with $4B+ in global revenue, Oreo sustains cultural relevance through relentless limited-edition innovation and social-first marketing. This report analyzes the collab playbook, global expansion, consumer ritual data, and the "Stay Playful" platform performance.</div>
+  </div>
+
+  <div class="kpi-rail">
+    <div class="kpi">
+      <div class="kpi-label">Global Net Revenue</div>
+      <div class="kpi-value">$4.1B</div>
+      <div class="kpi-delta up">▲ +6.8% organic growth</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:90%"></div></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Markets Worldwide</div>
+      <div class="kpi-value">100+</div>
+      <div class="kpi-delta up">▲ #1 cookie in 40+ markets</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:95%"></div></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Limited Editions (2024)</div>
+      <div class="kpi-value">14</div>
+      <div class="kpi-delta up">▲ Most in brand history</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:80%"></div></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Social Impressions</div>
+      <div class="kpi-value">18.2B</div>
+      <div class="kpi-delta up">▲ Organic + earned media</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:84%"></div></div>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <div class="card">
+      <div class="card-label">Revenue Performance</div>
+      <div class="card-title">Global Net Revenue by Region ($B)</div>
+      <div class="chart-wrap"><canvas id="oreo-regional"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Innovation Engine</div>
+      <div class="card-title">Limited Edition Sales Lift Index</div>
+      <div class="chart-wrap"><canvas id="oreo-ltd"></canvas></div>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <div class="card">
+      <div class="card-label">Consumer Rituals</div>
+      <div class="card-title">How America Eats Oreos</div>
+      <div class="donut-row">
+        <div class="donut-chart-wrap">
+          <canvas id="oreo-ritual"></canvas>
+          <div class="donut-center">
+            <div class="donut-center-val">39%</div>
+            <div class="donut-center-lbl">Twist &<br>Lick</div>
+          </div>
+        </div>
+        <div class="donut-legend">
+          <div class="dl-row"><div class="dl-dot" style="background:#d4b896"></div><div class="dl-label">Twist & Lick</div><div class="dl-val">39%</div></div>
+          <div class="dl-row"><div class="dl-dot" style="background:#a08060"></div><div class="dl-label">Dunk in Milk</div><div class="dl-val">31%</div></div>
+          <div class="dl-row"><div class="dl-dot" style="background:#6b5040"></div><div class="dl-label">Bite Whole</div><div class="dl-val">22%</div></div>
+          <div class="dl-row"><div class="dl-dot" style="background:#2c1f18"></div><div class="dl-label">Other</div><div class="dl-val">8%</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Collab Performance</div>
+      <div class="card-title">2024 Collaboration Earned Media Value</div>
+      <div class="chart-wrap"><canvas id="oreo-collab"></canvas></div>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <div class="card">
+      <div class="card-label">Brand Sentiment</div>
+      <div class="card-title">Consumer Sentiment by Platform</div>
+      <div class="chart-wrap"><canvas id="oreo-sentiment"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Competitive Set</div>
+      <div class="card-title">Cookie Category Share of Voice</div>
+      <div style="margin-top:8px">
+        <div class="comp-row"><div class="comp-name" style="color:#d4b896;font-weight:700">Oreo</div><div class="comp-bar-bg"><div class="comp-bar-fill" style="width:41%;background:#d4b896"></div></div><div class="comp-val" style="color:#d4b896">41%</div></div>
+        <div class="comp-row"><div class="comp-name">Chips Ahoy!</div><div class="comp-bar-bg"><div class="comp-bar-fill" style="width:18%;background:#fbbf24"></div></div><div class="comp-val">18%</div></div>
+        <div class="comp-row"><div class="comp-name">Pepperidge Farm</div><div class="comp-bar-bg"><div class="comp-bar-fill" style="width:14%;background:#f97316"></div></div><div class="comp-val">14%</div></div>
+        <div class="comp-row"><div class="comp-name">Nutter Butter</div><div class="comp-bar-bg"><div class="comp-bar-fill" style="width:11%;background:#a78bfa"></div></div><div class="comp-val">11%</div></div>
+        <div class="comp-row"><div class="comp-name">Other</div><div class="comp-bar-bg"><div class="comp-bar-fill" style="width:16%;background:rgba(255,255,255,.15)"></div></div><div class="comp-val">16%</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-full">
+    <div class="card-label">Strategic Insights</div>
+    <div class="card-title">Key Findings & Recommendations</div>
+    <div class="insights-grid">
+      <div class="insight">
+        <div class="insight-icon">🤝</div>
+        <div class="insight-title">Collab Playbook is Unbeatable</div>
+        <div class="insight-body">The Lady Gaga Chromatica Oreo generated $4M+ in earned media and sold out in under 48 hours at launch. The Pokemon collaboration drove 1.9B impressions. Each limited edition commands 18–22% price premium over standard SKUs while maintaining household penetration at 43%.</div>
+      </div>
+      <div class="insight">
+        <div class="insight-icon">🌏</div>
+        <div class="insight-title">China & India Fueling Growth</div>
+        <div class="insight-body">Developing markets now represent 38% of global Oreo revenue, up from 27% five years ago. China-specific flavors (green tea, peach, blueberry) have an 84% repurchase rate. India's "Oreo ka Tadka" campaign delivered 3× ROAS versus global norms.</div>
+      </div>
+      <div class="insight">
+        <div class="insight-icon">🍪</div>
+        <div class="insight-title">The Ritual is the Moat</div>
+        <div class="insight-body">Consumer neuroscience research shows the "Twist, Lick, Dunk" ritual activates reward pathways independent of taste — it's the brand's deepest emotional equity. 70% of Oreo buyers say the ritual is why they won't switch brands. Recommend deepening ritual content across TikTok and CTV.</div>
+      </div>
+    </div>
+    <div class="trend-chips">
+      <div class="chip hot">#OreoCollab</div>
+      <div class="chip hot">#StayPlayful</div>
+      <div class="chip hot">#OreoDunkChallenge</div>
+      <div class="chip">#LimitedEditionOreo</div>
+      <div class="chip">#TwistLickDunk</div>
+      <div class="chip">#OreoPerson</div>
+    </div>
+  </div>
+  <div class="panel-footer">
+    <div class="panel-footer-note">Sources: Mondelēz FY2024 earnings, Euromonitor, Nielsen, Brand Finance Global 500, social listening via Brandwatch.</div>
+    <div class="panel-footer-tag">Oreo · Brand Intelligence · 2024</div>
+  </div>
+</div>
+
+<script>
+/* ════ CHART DEFAULTS ════ */
+Chart.defaults.color = 'rgba(240,237,232,0.45)';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.07)';
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.plugins.legend.display = false;
+
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTHS_Q = ['Q1 22','Q2 22','Q3 22','Q4 22','Q1 23','Q2 23','Q3 23','Q4 23','Q1 24','Q2 24','Q3 24','Q4 24'];
+
+function lineOpts(color, label) {
+  return {
+    type: 'line',
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${label}: ${ctx.parsed.y}` } } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { maxRotation: 0 } },
+        y: { grid: { color: 'rgba(255,255,255,0.05)' } }
+      },
+      elements: { line: { tension: 0.4 }, point: { radius: 3, hoverRadius: 5 } }
+    }
+  };
+}
+
+/* ════ POPPI CHARTS ════ */
+new Chart(document.getElementById('poppi-sales'), {
+  type: 'line',
+  data: {
+    labels: MONTHS_SHORT,
+    datasets: [{
+      data: [3.2,3.8,4.6,5.1,6.2,7.4,8.1,8.8,9.4,10.2,11.6,13.1],
+      borderColor: '#ff6b9d', backgroundColor: 'rgba(255,107,157,0.08)',
+      fill: true, borderWidth: 2, pointBackgroundColor: '#ff6b9d'
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.05)' } },
+      y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => '$'+v+'M' } }
+    },
+    elements: { line: { tension: 0.4 }, point: { radius: 3 } }
+  }
+});
+
+new Chart(document.getElementById('poppi-sentiment'), {
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      data: [78, 14, 8],
+      backgroundColor: ['#ff6b9d','#ffb3cc','#3a1a2a'],
+      borderWidth: 0, hoverOffset: 4
+    }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, cutout: '72%', plugins: { legend: { display: false } } }
+});
+
+new Chart(document.getElementById('poppi-demo'), {
+  type: 'bar',
+  data: {
+    labels: ['18–24','25–34','35–44','45–54','55+'],
+    datasets: [{
+      data: [31, 38, 19, 8, 4],
+      backgroundColor: ['rgba(255,107,157,0.9)','rgba(255,107,157,0.7)','rgba(255,107,157,0.5)','rgba(255,107,157,0.3)','rgba(255,107,157,0.15)'],
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => v+'%' } }
+    }
+  }
+});
+
+new Chart(document.getElementById('poppi-roi'), {
+  type: 'bar',
+  data: {
+    labels: ['Influencer','TikTok Ads','TV/CTV','Instagram','PR/Events'],
+    datasets: [{
+      data: [4.2, 3.1, 2.4, 2.8, 5.8],
+      backgroundColor: ['rgba(255,107,157,0.85)','rgba(255,107,157,0.7)','rgba(255,107,157,0.5)','rgba(255,107,157,0.6)','rgba(255,107,157,0.9)'],
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => v+'×' } }
+    }
+  }
+});
+
+/* ════ SWEDISH FISH CHARTS ════ */
+new Chart(document.getElementById('swedish-sales'), {
+  type: 'bar',
+  data: {
+    labels: MONTHS_SHORT,
+    datasets: [{
+      data: [72, 68, 74, 82, 88, 92, 95, 98, 110, 185, 162, 95],
+      backgroundColor: ctx => {
+        const v = ctx.parsed.y;
+        return v >= 150 ? 'rgba(232,48,42,0.9)' : v >= 100 ? 'rgba(232,48,42,0.65)' : 'rgba(232,48,42,0.35)';
+      },
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => v } }
+    }
+  }
+});
+
+new Chart(document.getElementById('swedish-occasions'), {
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      data: [44, 28, 17, 11],
+      backgroundColor: ['#e8302a','#f97b74','#ffc2bf','#3d1010'],
+      borderWidth: 0
+    }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, cutout: '72%', plugins: { legend: { display: false } } }
+});
+
+new Chart(document.getElementById('swedish-channel'), {
+  type: 'bar',
+  data: {
+    labels: ['Mass Retail','Grocery','C-Store','Drug','Theater','Online'],
+    datasets: [{
+      data: [34, 28, 18, 9, 6, 5],
+      backgroundColor: 'rgba(232,48,42,0.7)',
+      borderColor: '#e8302a',
+      borderWidth: 1,
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    indexAxis: 'y',
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => v+'%' } },
+      y: { grid: { display: false } }
+    }
+  }
+});
+
+new Chart(document.getElementById('swedish-age'), {
+  type: 'bar',
+  data: {
+    labels: ['Gen Alpha','Gen Z','Millennials','Gen X','Boomers+'],
+    datasets: [{
+      data: [18, 26, 29, 18, 9],
+      backgroundColor: ['rgba(232,48,42,0.4)','rgba(232,48,42,0.7)','rgba(232,48,42,0.9)','rgba(232,48,42,0.55)','rgba(232,48,42,0.3)'],
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => v+'%' } }
+    }
+  }
+});
+
+/* ════ SUBWAY CHARTS ════ */
+new Chart(document.getElementById('subway-sss'), {
+  type: 'line',
+  data: {
+    labels: MONTHS_Q,
+    datasets: [{
+      label: 'Comp Sales %',
+      data: [-3.2, -1.8, 0.4, 1.2, 2.1, 3.4, 4.8, 5.2, 4.1, 3.8, 2.9, 3.4],
+      borderColor: '#00a651', backgroundColor: 'rgba(0,166,81,0.08)',
+      fill: true, borderWidth: 2, pointBackgroundColor: '#00a651'
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { maxRotation: 45, font: { size: 10 } } },
+      y: {
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        ticks: { callback: v => v+'%' }
+      }
+    },
+    elements: { line: { tension: 0.4 }, point: { radius: 3 } }
+  }
+});
+
+new Chart(document.getElementById('subway-digital'), {
+  type: 'bar',
+  data: {
+    labels: ['2020','2021','2022','2023','2024'],
+    datasets: [
+      { label: 'Digital', data: [8, 14, 20, 25, 32], backgroundColor: 'rgba(0,166,81,0.8)', borderRadius: 4 },
+      { label: 'In-Store', data: [92, 86, 80, 75, 68], backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 4 }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: true, labels: { color: 'rgba(240,237,232,0.55)', font: { size: 11 } } } },
+    scales: {
+      x: { stacked: true, grid: { display: false } },
+      y: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => v+'%' } }
+    }
+  }
+});
+
+new Chart(document.getElementById('subway-menu'), {
+  type: 'bar',
+  data: {
+    labels: ['Titan Turkey','The Monster','#9 Supreme','Club Elite','Beast','All-American'],
+    datasets: [{
+      data: [88, 84, 76, 72, 68, 65],
+      backgroundColor: 'rgba(0,166,81,0.7)',
+      borderColor: '#00a651', borderWidth: 1,
+      borderRadius: 3
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    indexAxis: 'y',
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.05)' }, max: 100 },
+      y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+    }
+  }
+});
+
+new Chart(document.getElementById('subway-sentiment'), {
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      data: [61, 22, 17],
+      backgroundColor: ['#00a651','#6ee7b7','#0d2e1a'],
+      borderWidth: 0
+    }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, cutout: '72%', plugins: { legend: { display: false } } }
+});
+
+new Chart(document.getElementById('subway-daypart'), {
+  type: 'bar',
+  data: {
+    labels: ['Breakfast\n6–10a','Lunch\n11a–2p','Afternoon\n2–5p','Dinner\n5–9p','Late Night\n9p+'],
+    datasets: [{
+      data: [11, 46, 16, 22, 5],
+      backgroundColor: ['rgba(0,166,81,0.4)','rgba(0,166,81,0.9)','rgba(0,166,81,0.45)','rgba(0,166,81,0.7)','rgba(0,166,81,0.3)'],
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => v+'%' } }
+    }
+  }
+});
+
+/* ════ OREO CHARTS ════ */
+new Chart(document.getElementById('oreo-regional'), {
+  type: 'bar',
+  data: {
+    labels: ['North America','Europe','China','AMEA','Latin Am.'],
+    datasets: [{
+      data: [1.82, 0.94, 0.72, 0.38, 0.24],
+      backgroundColor: ['rgba(212,184,150,0.9)','rgba(212,184,150,0.7)','rgba(212,184,150,0.55)','rgba(212,184,150,0.4)','rgba(212,184,150,0.3)'],
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => '$'+v+'B' } }
+    }
+  }
+});
+
+new Chart(document.getElementById('oreo-ltd'), {
+  type: 'bar',
+  data: {
+    labels: ['Pokemon','Lady Gaga','Star Wars','Batman','Space Dunk','Nightmare','Trolls','Golden'],
+    datasets: [{
+      data: [142, 138, 118, 124, 96, 112, 88, 104],
+      backgroundColor: 'rgba(212,184,150,0.65)',
+      borderColor: '#d4b896', borderWidth: 1,
+      borderRadius: 3
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` Sales Lift Index: ${ctx.parsed.y}` } } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 45 } },
+      y: { grid: { color: 'rgba(255,255,255,0.05)' }, min: 60 }
+    }
+  }
+});
+
+new Chart(document.getElementById('oreo-ritual'), {
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      data: [39, 31, 22, 8],
+      backgroundColor: ['#d4b896','#a08060','#6b5040','#2c1f18'],
+      borderWidth: 0
+    }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, cutout: '72%', plugins: { legend: { display: false } } }
+});
+
+new Chart(document.getElementById('oreo-collab'), {
+  type: 'bar',
+  data: {
+    labels: ['Pokemon','Lady Gaga','Star Wars','Batman','Space Dunk'],
+    datasets: [{
+      data: [48, 41, 32, 36, 18],
+      backgroundColor: 'rgba(212,184,150,0.7)',
+      borderColor: '#d4b896', borderWidth: 1,
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` $${ctx.parsed.y}M EMV` } } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => '$'+v+'M' } }
+    }
+  }
+});
+
+new Chart(document.getElementById('oreo-sentiment'), {
+  type: 'bar',
+  data: {
+    labels: ['TikTok','Instagram','YouTube','Twitter/X','Reddit'],
+    datasets: [
+      { label: 'Positive', data: [84, 79, 76, 61, 58], backgroundColor: 'rgba(212,184,150,0.8)', borderRadius: 3 },
+      { label: 'Negative', data: [7, 9, 10, 20, 24], backgroundColor: 'rgba(100,70,50,0.6)', borderRadius: 3 }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: true, labels: { color: 'rgba(240,237,232,0.55)', font: { size: 11 } } }
+    },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => v+'%' } }
+    }
+  }
+});
+
+/* ════ BRAND SWITCHING ════ */
+function switchBrand(id, btn) {
+  document.querySelectorAll('.brand-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.brand-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
