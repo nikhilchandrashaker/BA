@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FaZe Clan Analytics Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --red: #FF3A3A;
+    --red-dim: rgba(255,58,58,0.12);
+    --red-glow: rgba(255,58,58,0.06);
+    --orange: #FF7A1A;
+    --orange-dim: rgba(255,122,26,0.12);
+    --blue: #3A9FFF;
+    --blue-dim: rgba(58,159,255,0.1);
+    --green: #3AFFB8;
+    --green-dim: rgba(58,255,184,0.08);
+    --purple: #9B5FFF;
+    --gray: #B0B0C0;
+    --bg: #080810;
+    --surface: #0f0f1a;
+    --surface2: #161626;
+    --surface3: #1e1e32;
+    --border: rgba(255,58,58,0.08);
+    --border2: rgba(255,58,58,0.18);
+    --border-n: rgba(255,255,255,0.07);
+    --text: #f0f0ff;
+    --text2: #8888aa;
+    --text3: #4a4a6a;
+    --grid: rgba(255,58,58,0.03);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,58,58,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,58,58,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Subtle red top glow */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--red), transparent);
+    opacity: 0.5;
+    z-index: 0;
+  }
+
+  .container { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 0 24px 80px; }
+
+  /* HEADER */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 32px 0 28px;
+    border-bottom: 1px solid var(--border2);
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .logo-area { display: flex; align-items: center; gap: 18px; }
+
+  .faze-logo {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--red);
+    letter-spacing: -1px;
+    line-height: 1;
+    text-shadow: 0 0 40px rgba(255,58,58,0.3);
+  }
+
+  .header-divider { width: 1px; height: 44px; background: var(--border2); }
+
+  .header-text { }
+  .header-title { font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 600; letter-spacing: 3px; color: var(--text2); text-transform: uppercase; }
+  .header-sub { font-size: 11px; color: var(--text3); letter-spacing: 1px; font-family: 'DM Mono', monospace; margin-top: 3px; }
+
+  .header-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 5px 11px;
+    border-radius: 3px;
+    border: 1px solid var(--border-n);
+    color: var(--text2);
+    background: var(--surface2);
+    letter-spacing: 0.4px;
+  }
+  .badge.red { border-color: rgba(255,58,58,0.3); color: var(--red); }
+  .badge.warn { border-color: rgba(255,122,26,0.3); color: var(--orange); }
+
+  /* STATUS BANNER */
+  .status-banner {
+    background: rgba(255,122,26,0.07);
+    border: 1px solid rgba(255,122,26,0.2);
+    border-radius: 6px;
+    padding: 10px 16px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    color: var(--orange);
+    font-family: 'DM Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .status-banner::before { content: '⚠'; font-size: 14px; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 2px; margin-bottom: 28px; background: var(--surface); border-radius: 6px; padding: 4px; border: 1px solid var(--border); width: fit-content; flex-wrap: wrap; }
+  .tab {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px; font-weight: 600;
+    padding: 7px 20px;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--surface3); color: var(--red); border: 1px solid var(--border2); }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* METRICS */
+  .metric-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 10px; margin-bottom: 20px; }
+
+  .metric {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .metric:hover { border-color: var(--border2); }
+  .metric::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent, var(--red));
+    opacity: 0.7;
+  }
+  .metric.blue { --accent: var(--blue); }
+  .metric.green { --accent: var(--green); }
+  .metric.orange { --accent: var(--orange); }
+  .metric.purple { --accent: var(--purple); }
+  .metric.warn { --accent: var(--orange); }
+
+  .metric-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; font-family: 'DM Mono', monospace; margin-bottom: 8px; }
+  .metric-value { font-family: 'Rajdhani', sans-serif; font-size: 32px; font-weight: 700; letter-spacing: 0.5px; color: var(--text); line-height: 1; }
+  .metric-sub { font-size: 11px; color: var(--text3); margin-top: 5px; }
+
+  /* CHARTS */
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 22px;
+    margin-bottom: 14px;
+    transition: border-color 0.2s;
+  }
+  .chart-card:hover { border-color: var(--border2); }
+
+  .chart-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+  .chart-title { font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: 0.5px; }
+  .chart-sub { font-size: 11px; color: var(--text3); margin-top: 2px; font-family: 'DM Mono', monospace; }
+
+  .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  @media (max-width: 700px) { .chart-row { grid-template-columns: 1fr; } }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text2); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+  /* MEMBERS */
+  .member-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 10px; margin-bottom: 20px; }
+
+  .member-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .member-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+  .member-card.selected { border-color: var(--red); }
+  .member-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--member-color, var(--red));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .member-card:hover::after, .member-card.selected::after { opacity: 1; }
+  .member-card.former { opacity: 0.65; }
+  .member-card.former:hover { opacity: 0.9; }
+
+  .avatar {
+    width: 36px; height: 36px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px; font-weight: 700;
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  .member-name { font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 1px; letter-spacing: 0.3px; }
+  .member-handle { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; margin-bottom: 10px; }
+  .member-status { display: inline-block; font-size: 9px; padding: 2px 6px; border-radius: 2px; font-family: 'DM Mono', monospace; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .status-active { background: rgba(58,255,184,0.1); color: var(--green); border: 1px solid rgba(58,255,184,0.2); }
+  .status-former { background: rgba(255,122,26,0.1); color: var(--orange); border: 1px solid rgba(255,122,26,0.2); }
+
+  .member-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .mstat-val { font-family: 'Rajdhani', sans-serif; font-size: 17px; font-weight: 700; color: var(--text); line-height: 1; }
+  .mstat-lbl { font-size: 10px; color: var(--text3); letter-spacing: 0.4px; margin-top: 1px; }
+
+  /* CHANNELS TABLE */
+  .section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text3); font-family: 'DM Mono', monospace; margin-bottom: 10px; margin-top: 4px; }
+  .overflow-x { overflow-x: auto; }
+
+  .ch-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .ch-table th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); font-family: 'DM Mono', monospace; padding: 8px 12px; border-bottom: 1px solid var(--border); font-weight: 400; }
+  .ch-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: middle; }
+  .ch-table tr:last-child td { border-bottom: none; }
+  .ch-table tr:hover td { background: var(--surface2); }
+  .ch-name { font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 14px; color: var(--text); }
+  .ch-tag { font-size: 9px; padding: 2px 6px; border-radius: 2px; font-family: 'DM Mono', monospace; font-weight: 400; text-transform: uppercase; letter-spacing: 0.5px; display: inline-block; }
+  .tag-main { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,58,58,0.2); }
+  .tag-2nd { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(58,159,255,0.2); }
+  .tag-org { background: rgba(255,122,26,0.1); color: var(--orange); border: 1px solid rgba(255,122,26,0.2); }
+  .tag-clips { background: rgba(155,95,255,0.1); color: var(--purple); border: 1px solid rgba(155,95,255,0.2); }
+  .tag-former { background: rgba(255,255,255,0.04); color: var(--text3); border: 1px solid var(--border-n); }
+  .num { font-family: 'DM Mono', monospace; font-size: 12px; }
+  .num.big { font-size: 13px; color: var(--text); font-weight: 500; }
+  .bar-mini { width: 70px; height: 4px; background: var(--surface3); border-radius: 2px; display: inline-block; vertical-align: middle; margin-left: 8px; overflow: hidden; }
+  .bar-mini-fill { height: 100%; border-radius: 2px; }
+
+  /* TIMELINE */
+  .timeline { position: relative; padding-left: 24px; margin-bottom: 20px; }
+  .timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 1px; background: var(--border2); }
+  .timeline-item { position: relative; margin-bottom: 16px; }
+  .timeline-item::before { content: ''; position: absolute; left: -20px; top: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--red); border: 2px solid var(--bg); }
+  .timeline-item.orange::before { background: var(--orange); }
+  .timeline-item.green::before { background: var(--green); }
+  .tl-date { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--text3); margin-bottom: 3px; }
+  .tl-title { font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .tl-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="logo-area">
+      <div class="faze-logo">FaZe</div>
+      <div class="header-divider"></div>
+      <div class="header-text">
+        <div class="header-title">Analytics Dashboard</div>
+        <div class="header-sub">Social Media Intelligence · Est. March 2026</div>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span class="badge red">● Est. data</span>
+      <span class="badge warn">Post-exodus</span>
+      <span class="badge">Founded 2010</span>
+      <span class="badge">GameSquare / FaZe Esports</span>
+    </div>
+  </div>
+
+  <div class="status-banner">
+    FaZe Media collapsed in December 2025 following a mass creator exodus. This dashboard covers both current & notable former members for historical context. Subscriber figures are estimates.
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" onclick="switchTab('overview', this)">Overview</button>
+    <button class="tab" onclick="switchTab('members', this)">Members</button>
+    <button class="tab" onclick="switchTab('channels', this)">All Channels</button>
+    <button class="tab" onclick="switchTab('history', this)">Timeline</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div id="overview" class="section active">
+    <p class="section-label">Network totals (peak estimates, incl. former members)</p>
+    <div class="metric-grid">
+      <div class="metric blue"><div class="metric-label">FaZe Clan YT</div><div class="metric-value">9.6M</div><div class="metric-sub">org main channel</div></div>
+      <div class="metric"><div class="metric-label">Rug (largest)</div><div class="metric-value">27M+</div><div class="metric-sub">biggest creator</div></div>
+      <div class="metric green"><div class="metric-label">Combined YT subs</div><div class="metric-value">~140M</div><div class="metric-sub">all members combined</div></div>
+      <div class="metric orange"><div class="metric-label">FaZe Rug views</div><div class="metric-value">5B+</div><div class="metric-sub">all time</div></div>
+      <div class="metric purple"><div class="metric-label">Founded</div><div class="metric-value">2010</div><div class="metric-sub">as FaZe Sniping</div></div>
+      <div class="metric warn"><div class="metric-label">Dec 2025 exodus</div><div class="metric-value">10+</div><div class="metric-sub">creators departed</div></div>
+      <div class="metric blue"><div class="metric-label">Esports earnings</div><div class="metric-value">$21.5M</div><div class="metric-sub">all-time prize money</div></div>
+      <div class="metric"><div class="metric-label">Peak valuation</div><div class="metric-value">$725M</div><div class="metric-sub">NASDAQ 2022</div></div>
+    </div>
+
+    <div class="chart-row">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Top member YouTube subscribers</div>
+            <div class="chart-sub">Active + notable former members · millions</div>
+          </div>
+        </div>
+        <div style="position:relative;height:280px"><canvas id="subChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Platform reach breakdown</div>
+            <div class="chart-sub">Combined network est.</div>
+          </div>
+        </div>
+        <div style="position:relative;height:240px"><canvas id="platformPie"></canvas></div>
+        <div class="legend" style="margin-top:12px">
+          <span class="legend-item"><span class="legend-dot" style="background:#FF3A3A"></span>YouTube 52%</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#FF7A1A"></span>Instagram 18%</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#3A9FFF"></span>Twitter/X 14%</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#3AFFB8"></span>Twitch 10%</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#9B5FFF"></span>TikTok 6%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">FaZe Clan org channel — est. monthly views 2024</div>
+          <div class="chart-sub">Millions</div>
+        </div>
+      </div>
+      <div style="position:relative;height:190px"><canvas id="monthlyChart"></canvas></div>
+    </div>
+
+    <div class="chart-row">
+      <div class="chart-card">
+        <div class="chart-header"><div class="chart-title">Instagram following — top members</div></div>
+        <div style="position:relative;height:230px"><canvas id="igChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header"><div class="chart-title">Content niche breakdown — member base</div></div>
+        <div class="legend">
+          <span class="legend-item"><span class="legend-dot" style="background:#FF3A3A"></span>Gaming / CoD 38%</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#FF7A1A"></span>Vlogs / Lifestyle 28%</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#3A9FFF"></span>Streaming 20%</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#3AFFB8"></span>Fortnite 9%</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#9B5FFF"></span>Music / Other 5%</span>
+        </div>
+        <div style="position:relative;height:200px"><canvas id="nicheChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MEMBERS -->
+  <div id="members" class="section">
+    <p class="section-label">Active members (as of early 2026)</p>
+    <div class="member-grid" id="activeMemberGrid"></div>
+    <p class="section-label" style="margin-top:8px">Notable former members</p>
+    <div class="member-grid" id="formerMemberGrid"></div>
+    <div class="chart-card" id="memberDetail">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title" id="detailTitle">Select a member above to see their breakdown</div>
+          <div class="chart-sub" id="detailSub">Platform following comparison</div>
+        </div>
+      </div>
+      <div class="chart-row">
+        <div><div style="position:relative;height:260px"><canvas id="memberPlatformChart"></canvas></div></div>
+        <div><div style="position:relative;height:260px"><canvas id="memberRadarChart"></canvas></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALL CHANNELS -->
+  <div id="channels" class="section">
+    <p class="section-label">Organisation channels</p>
+    <div class="metric-grid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr));margin-bottom:16px">
+      <div class="metric orange"><div class="metric-label">FaZe Clan</div><div class="metric-value">9.6M</div><div class="metric-sub">main org channel</div></div>
+      <div class="metric orange"><div class="metric-label">FaZe Clan 2</div><div class="metric-value">4.1M</div><div class="metric-sub">2nd org channel</div></div>
+      <div class="metric purple"><div class="metric-label">FaZe Highlights</div><div class="metric-value">2.3M</div><div class="metric-sub">clips</div></div>
+      <div class="metric blue"><div class="metric-label">FaZe Music</div><div class="metric-value">0.8M</div><div class="metric-sub">music</div></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header"><div class="chart-title">Org channels vs top member channels</div></div>
+      <div style="position:relative;height:260px"><canvas id="orgVsMemberChart"></canvas></div>
+    </div>
+
+    <p class="section-label" style="margin-top:4px">All member channels</p>
+    <div class="chart-card">
+      <div class="overflow-x">
+        <table class="ch-table">
+          <thead>
+            <tr>
+              <th>Channel</th>
+              <th>Member</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Subscribers</th>
+              <th>Est. Total Views</th>
+              <th>Niche</th>
+            </tr>
+          </thead>
+          <tbody id="channelTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="chart-card" style="margin-top:0">
+      <div class="chart-header"><div class="chart-title">Member main channels — subscriber comparison</div></div>
+      <div style="position:relative;height:340px"><canvas id="allSubsChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- HISTORY / TIMELINE -->
+  <div id="history" class="section">
+    <div class="chart-row">
+      <div class="chart-card">
+        <div class="chart-header"><div><div class="chart-title">FaZe Clan org channel growth</div><div class="chart-sub">Subscribers (millions) · 2010–2025</div></div></div>
+        <div style="position:relative;height:240px"><canvas id="orgGrowthChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header"><div><div class="chart-title">Valuation history</div><div class="chart-sub">Est. USD millions</div></div></div>
+        <div style="position:relative;height:240px"><canvas id="valuationChart"></canvas></div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header"><div class="chart-title">Key milestones</div></div>
+      <div class="timeline" id="timeline"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header"><div><div class="chart-title">Creator roster size over time</div><div class="chart-sub">Number of content creators in FaZe</div></div></div>
+      <div style="position:relative;height:200px"><canvas id="rosterChart"></canvas></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────
+
+const activeMembers = [
+  { name:'FaZe Jev', handle:'@FaZeJev', avatar:'JEV', color:'#FF3A3A', bg:'rgba(255,58,58,0.15)',
+    mainSubs:5.4, secondSubs:0.4, ig:1.1, twitter:1.4, twitch:0.3, tiktok:0.5,
+    totalViews:'1.1B', mainCh:'FaZe Jev', secondCh:'Jev Clips',
+    niche:'Call of Duty / Rants', joined:2014, status:'active' },
+  { name:'FaZe Replays', handle:'@FaZeReplays', avatar:'REP', color:'#3A9FFF', bg:'rgba(58,159,255,0.12)',
+    mainSubs:3.8, secondSubs:0.5, ig:0.7, twitter:0.5, twitch:0.2, tiktok:0.4,
+    totalViews:'0.8B', mainCh:'FaZe Replays', secondCh:'Replays Plays',
+    niche:'CoD / Trickshots', joined:2015, status:'active' },
+  { name:'FaZe Scope', handle:'@FaZeScope', avatar:'SCO', color:'#3AFFB8', bg:'rgba(58,255,184,0.1)',
+    mainSubs:1.2, secondSubs:0.2, ig:0.4, twitter:0.3, twitch:0.1, tiktok:0.2,
+    totalViews:'0.2B', mainCh:'FaZe Scope', secondCh:'Scope Vods',
+    niche:'Fortnite / Gaming', joined:2019, status:'active' },
+  { name:'ZooMaa', handle:'@ZooMaa', avatar:'ZOO', color:'#9B5FFF', bg:'rgba(155,95,255,0.12)',
+    mainSubs:1.6, secondSubs:0.3, ig:0.5, twitter:0.8, twitch:0.4, tiktok:0.3,
+    totalViews:'0.3B', mainCh:'ZooMaa', secondCh:'The Flank',
+    niche:'CoD / Podcast', joined:2015, status:'active' },
+];
+
+const formerMembers = [
+  { name:'FaZe Rug', handle:'@FaZeRug', avatar:'RUG', color:'#FF3A3A', bg:'rgba(255,58,58,0.15)',
+    mainSubs:27.5, secondSubs:3.1, ig:8.4, twitter:2.8, twitch:0.6, tiktok:5.2,
+    totalViews:'5B', mainCh:'FaZe Rug', secondCh:'RugRat Vlogs',
+    niche:'Vlogs / Challenges', joined:2012, left:'Dec 2025', status:'former' },
+  { name:'FaZe Adapt', handle:'@FaZeAdapt', avatar:'ADP', color:'#FF7A1A', bg:'rgba(255,122,26,0.12)',
+    mainSubs:5.9, secondSubs:0.8, ig:2.1, twitter:1.2, twitch:0.5, tiktok:1.4,
+    totalViews:'1.3B', mainCh:'FaZe Adapt', secondCh:'Adapt Reacts',
+    niche:'Gaming / Vlogs / Recovery', joined:2013, left:'Dec 2025', status:'former' },
+  { name:'FaZe Apex', handle:'@FaZeApex', avatar:'APX', color:'#3A9FFF', bg:'rgba(58,159,255,0.12)',
+    mainSubs:4.2, secondSubs:0.6, ig:1.8, twitter:1.5, twitch:0.2, tiktok:0.8,
+    totalViews:'0.9B', mainCh:'FaZe Apex', secondCh:'Apex Gaming',
+    niche:'Gaming / CoD / MiddleEast', joined:2011, left:'Dec 2025', status:'former' },
+  { name:'Swagg', handle:'@Swagg', avatar:'SWG', color:'#9B5FFF', bg:'rgba(155,95,255,0.12)',
+    mainSubs:3.4, secondSubs:0.4, ig:1.2, twitter:0.9, twitch:2.1, tiktok:1.1,
+    totalViews:'0.7B', mainCh:'Swagg', secondCh:'Swagg Clips',
+    niche:'Warzone / Call of Duty', joined:2020, left:'Dec 2025', status:'former' },
+  { name:'FaZe Banks', handle:'@FaZeBanks', avatar:'BNK', color:'#FF3A3A', bg:'rgba(255,58,58,0.12)',
+    mainSubs:3.6, secondSubs:0.5, ig:3.1, twitter:2.4, twitch:0.3, tiktok:1.2,
+    totalViews:'0.5B', mainCh:'FaZe Banks', secondCh:'Banks Daily',
+    niche:'Vlogs / Drama / Business', joined:2012, left:'Jul 2025', status:'former' },
+  { name:'NICKMERCS', handle:'@NICKMERCS', avatar:'NMR', color:'#3AFFB8', bg:'rgba(58,255,184,0.1)',
+    mainSubs:4.1, secondSubs:0.7, ig:2.3, twitter:2.1, twitch:6.2, tiktok:1.3,
+    totalViews:'0.8B', mainCh:'NICKMERCS', secondCh:'MFAM Clips',
+    niche:'Warzone / Fortnite', joined:2019, left:'Jun 2022', status:'former' },
+  { name:'Tfue', handle:'@Tfue', avatar:'TFU', color:'#FF7A1A', bg:'rgba(255,122,26,0.12)',
+    mainSubs:11.2, secondSubs:1.4, ig:3.8, twitter:2.9, twitch:8.1, tiktok:2.1,
+    totalViews:'2.4B', mainCh:'Tfue', secondCh:'Tfue Clips',
+    niche:'Fortnite / Gaming', joined:2018, left:'Jun 2019', status:'former' },
+  { name:'FaZe Kay', handle:'@FaZeKay', avatar:'KAY', color:'#9B5FFF', bg:'rgba(155,95,255,0.12)',
+    mainSubs:4.8, secondSubs:0.6, ig:2.1, twitter:1.4, twitch:0.1, tiktok:2.2,
+    totalViews:'1.0B', mainCh:'FaZe Kay', secondCh:'Kay Reacts',
+    niche:'Vlogs / Challenges', joined:2016, left:'Jul 2021', status:'former' },
+  { name:'Temperrr', handle:'@FaZeTemperrr', avatar:'TMP', color:'#FF3A3A', bg:'rgba(255,58,58,0.12)',
+    mainSubs:1.6, secondSubs:0.3, ig:1.0, twitter:0.9, twitch:0.4, tiktok:0.6,
+    totalViews:'0.3B', mainCh:'FaZe Temperrr', secondCh:'Temperrr Vlogs',
+    niche:'CoD / Vlogs / Boxing', joined:2010, left:'Sep 2025', status:'former' },
+  { name:'FaZe Rain', handle:'@FaZeRain', avatar:'RAN', color:'#3A9FFF', bg:'rgba(58,159,255,0.12)',
+    mainSubs:5.2, secondSubs:0.8, ig:2.4, twitter:1.3, twitch:0.5, tiktok:0.9,
+    totalViews:'1.1B', mainCh:'FaZe Rain', secondCh:'Rain Clips',
+    niche:'CoD / Lifestyle', joined:2012, left:'Apr 2024', status:'former' },
+];
+
+const allChannels = [
+  // ORG
+  { ch:'FaZe Clan', member:'Org', type:'org', status:'active', subs:9.6, views:'3.2B', niche:'Gaming / Highlights' },
+  { ch:'FaZe Clan 2', member:'Org', type:'org', status:'active', subs:4.1, views:'0.9B', niche:'2nd content' },
+  { ch:'FaZe Highlights', member:'Org', type:'clips', status:'active', subs:2.3, views:'0.5B', niche:'Clips / Montages' },
+  { ch:'FaZe Music', member:'Org', type:'org', status:'active', subs:0.8, views:'0.2B', niche:'Music' },
+  // ACTIVE
+  { ch:'FaZe Jev', member:'FaZe Jev', type:'main', status:'active', subs:5.4, views:'1.1B', niche:'CoD / Rants / Comedy' },
+  { ch:'Jev Clips', member:'FaZe Jev', type:'clips', status:'active', subs:0.4, views:'0.1B', niche:'Clips' },
+  { ch:'FaZe Replays', member:'FaZe Replays', type:'main', status:'active', subs:3.8, views:'0.8B', niche:'CoD / Trickshots' },
+  { ch:'Replays Plays', member:'FaZe Replays', type:'2nd', status:'active', subs:0.5, views:'0.1B', niche:'Gaming 2nd' },
+  { ch:'FaZe Scope', member:'FaZe Scope', type:'main', status:'active', subs:1.2, views:'0.2B', niche:'Fortnite' },
+  { ch:'ZooMaa', member:'ZooMaa', type:'main', status:'active', subs:1.6, views:'0.3B', niche:'CoD / Podcast' },
+  { ch:'The Flank (Podcast)', member:'ZooMaa', type:'2nd', status:'active', subs:0.7, views:'0.1B', niche:'Podcast' },
+  // FORMER
+  { ch:'FaZe Rug', member:'FaZe Rug', type:'main', status:'former', subs:27.5, views:'5.0B', niche:'Vlogs / Challenges / Pranks' },
+  { ch:'RugRat Vlogs', member:'FaZe Rug', type:'2nd', status:'former', subs:3.1, views:'0.8B', niche:'Daily vlogs' },
+  { ch:'FaZe Adapt', member:'FaZe Adapt', type:'main', status:'former', subs:5.9, views:'1.3B', niche:'Gaming / Vlogs / Recovery' },
+  { ch:'Adapt Reacts', member:'FaZe Adapt', type:'2nd', status:'former', subs:0.8, views:'0.2B', niche:'Reaction content' },
+  { ch:'FaZe Apex', member:'FaZe Apex', type:'main', status:'former', subs:4.2, views:'0.9B', niche:'Gaming / CoD' },
+  { ch:'Apex Gaming', member:'FaZe Apex', type:'2nd', status:'former', subs:0.6, views:'0.1B', niche:'Gaming 2nd' },
+  { ch:'Swagg', member:'Swagg', type:'main', status:'former', subs:3.4, views:'0.7B', niche:'Warzone / CoD' },
+  { ch:'Swagg Clips', member:'Swagg', type:'clips', status:'former', subs:0.4, views:'0.1B', niche:'Clips' },
+  { ch:'Tfue', member:'Tfue', type:'main', status:'former', subs:11.2, views:'2.4B', niche:'Fortnite / Gaming' },
+  { ch:'Tfue Clips', member:'Tfue', type:'clips', status:'former', subs:1.4, views:'0.5B', niche:'Clips' },
+  { ch:'FaZe Banks', member:'FaZe Banks', type:'main', status:'former', subs:3.6, views:'0.5B', niche:'Vlogs / Drama' },
+  { ch:'NICKMERCS', member:'NICKMERCS', type:'main', status:'former', subs:4.1, views:'0.8B', niche:'Warzone / Fortnite' },
+  { ch:'MFAM Clips', member:'NICKMERCS', type:'clips', status:'former', subs:0.7, views:'0.2B', niche:'Clips' },
+  { ch:'FaZe Kay', member:'FaZe Kay', type:'main', status:'former', subs:4.8, views:'1.0B', niche:'Vlogs / Challenges' },
+  { ch:'Kay Reacts', member:'FaZe Kay', type:'2nd', status:'former', subs:0.6, views:'0.2B', niche:'Reactions' },
+  { ch:'FaZe Rain', member:'FaZe Rain', type:'main', status:'former', subs:5.2, views:'1.1B', niche:'CoD / Lifestyle' },
+  { ch:'Rain Clips', member:'FaZe Rain', type:'clips', status:'former', subs:0.8, views:'0.2B', niche:'Clips' },
+  { ch:'Temperrr', member:'Temperrr', type:'main', status:'former', subs:1.6, views:'0.3B', niche:'CoD / Vlogs / Boxing' },
+];
+
+const milestones = [
+  { date:'May 2010', title:'FaZe Sniping founded', desc:'Three CoD players start a trickshot YouTube channel.', type:'green' },
+  { date:'2011', title:'FaZe Apex & Rain join', desc:'Early expansion grows the roster with personality-driven creators.', type:'green' },
+  { date:'2012', title:'1M subscribers milestone', desc:'FaZe Clan hits 1M subs — one of the first gaming channels to do so.', type:'green' },
+  { date:'2012–13', title:'Banks, Rug & Temperrr join', desc:'Lifestyle and vlog creators diversify content beyond trickshots.', type:'green' },
+  { date:'2018', title:'Tfue signs', desc:'Fortnite star Turner Tenney joins — brings massive new audience.', type:'green' },
+  { date:'Jun 2019', title:'Tfue lawsuit', desc:'Tfue sues FaZe over contract terms; eventually leaves the org.', type:'red' },
+  { date:'2019', title:'NICKMERCS co-owner', desc:'Twitch megastar Nick Kolcheff joins as co-owner.', type:'green' },
+  { date:'Jun 2021', title:'Sports Illustrated cover', desc:'First esports org to appear on the Sports Illustrated cover.', type:'green' },
+  { date:'Jul 2022', title:'NASDAQ IPO ($725M)', desc:'FaZe Holdings goes public; valuation falls short of $1B target.', type:'orange' },
+  { date:'Jul 2021', title:'Crypto scandal', desc:'FaZe Kay, Jarvis, Nikan & Teeqo promote "Save the Kids" pump-and-dump.', type:'red' },
+  { date:'Apr 2024', title:'"Reboot" — 110 staff cut', desc:'Banks fires 17 creators; roster slashed to 14 in survival move.', type:'red' },
+  { date:'Sep 2025', title:'Temperrr & Banks controversy', desc:'Rain accuses Temperrr; Banks steps down as CEO over MLG coin scam.', type:'red' },
+  { date:'Dec 25–27, 2025', title:'Mass creator exodus', desc:'Adapt, Rug, Apex, Swagg, Jev & more all depart FaZe Media.', type:'red' },
+  { date:'Dec 2025', title:'FaZe Media shuts down', desc:'Entertainment division collapses; FaZe Esports continues under GameSquare.', type:'red' },
+];
+
+// ── CHART CONFIG ──────────────────────────────────────────────────────────
+
+const gridColor = 'rgba(255,58,58,0.05)';
+const tickColor = '#4a4a6a';
+const baseOpts = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11, family: 'DM Mono' } }, border: { color: 'transparent' } },
+    y: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11, family: 'DM Mono' } }, border: { color: 'transparent' } }
+  }
+};
+
+// ── OVERVIEW CHARTS ───────────────────────────────────────────────────────
+
+const topMembers = [...formerMembers, ...activeMembers].sort((a,b) => b.mainSubs - a.mainSubs).slice(0, 10);
+new Chart(document.getElementById('subChart'), {
+  type: 'bar',
+  data: {
+    labels: topMembers.map(m => m.name),
+    datasets: [{
+      data: topMembers.map(m => m.mainSubs),
+      backgroundColor: topMembers.map(m => m.status === 'active' ? m.color : m.color + '66'),
+      borderRadius: 4, borderSkipped: false
+    }]
+  },
+  options: { ...baseOpts, scales: { x: { ...baseOpts.scales.x, ticks: { ...baseOpts.scales.x.ticks, maxRotation: 35 } }, y: { ...baseOpts.scales.y, ticks: { ...baseOpts.scales.y.ticks, callback: v => v + 'M' } } } }
+});
+
+new Chart(document.getElementById('platformPie'), {
+  type: 'doughnut',
+  data: { datasets: [{ data: [52,18,14,10,6], backgroundColor: ['#FF3A3A','#FF7A1A','#3A9FFF','#3AFFB8','#9B5FFF'], borderWidth:0, hoverOffset:8 }] },
+  options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, cutout:'65%' }
+});
+
+new Chart(document.getElementById('monthlyChart'), {
+  type: 'line',
+  data: { labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    datasets: [{ data: [12,15,14,18,16,20,22,24,21,18,19,22], borderColor:'#FF3A3A', backgroundColor:'rgba(255,58,58,0.06)', fill:true, tension:0.4, pointRadius:3, pointBackgroundColor:'#FF3A3A', borderWidth:2 }] },
+  options: { ...baseOpts, scales: { x: baseOpts.scales.x, y: { ...baseOpts.scales.y, ticks: { ...baseOpts.scales.y.ticks, callback: v => v + 'M' } } } }
+});
+
+const igData = [...formerMembers, ...activeMembers].sort((a,b) => b.ig - a.ig).slice(0,8);
+new Chart(document.getElementById('igChart'), {
+  type: 'bar',
+  data: { labels: igData.map(m => m.name), datasets: [{ data: igData.map(m => m.ig), backgroundColor: igData.map(m => m.color + '99'), borderRadius:4, borderSkipped:false }] },
+  options: { ...baseOpts, scales: { x: { ...baseOpts.scales.x, ticks: { ...baseOpts.scales.x.ticks, maxRotation:35 } }, y: { ...baseOpts.scales.y, ticks: { ...baseOpts.scales.y.ticks, callback: v => v+'M' } } } }
+});
+
+new Chart(document.getElementById('nicheChart'), {
+  type: 'doughnut',
+  data: { datasets: [{ data: [38,28,20,9,5], backgroundColor: ['#FF3A3A','#FF7A1A','#3A9FFF','#3AFFB8','#9B5FFF'], borderWidth:0, hoverOffset:6 }] },
+  options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, cutout:'58%' }
+});
+
+// ── MEMBERS ───────────────────────────────────────────────────────────────
+
+function buildMemberGrid(members, containerId, isFormer) {
+  const grid = document.getElementById(containerId);
+  members.forEach((m, i) => {
+    const card = document.createElement('div');
+    card.className = 'member-card' + (isFormer ? ' former' : '');
+    card.style.setProperty('--member-color', m.color);
+    const statusLabel = isFormer ? `<div class="member-status status-former">Left ${m.left || m.status}</div>` : '<div class="member-status status-active">Active</div>';
+    card.innerHTML = `
+      <div class="avatar" style="background:${m.bg};color:${m.color}">${m.avatar}</div>
+      <div class="member-name">${m.name}</div>
+      <div class="member-handle">${m.handle}</div>
+      ${statusLabel}
+      <div class="member-stats">
+        <div class="mstat"><div class="mstat-val">${m.mainSubs}M</div><div class="mstat-lbl">YT main</div></div>
+        <div class="mstat"><div class="mstat-val">${m.ig}M</div><div class="mstat-lbl">Instagram</div></div>
+        <div class="mstat"><div class="mstat-val">${m.twitch}M</div><div class="mstat-lbl">Twitch</div></div>
+        <div class="mstat"><div class="mstat-val">${m.twitter}M</div><div class="mstat-lbl">Twitter</div></div>
+      </div>`;
+    card.onclick = () => selectMember(m, card);
+    grid.appendChild(card);
+  });
+}
+
+buildMemberGrid(activeMembers, 'activeMemberGrid', false);
+buildMemberGrid(formerMembers, 'formerMemberGrid', true);
+
+let memberPlatformInst = null, memberRadarInst = null;
+
+function selectMember(m, card) {
+  document.querySelectorAll('.member-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  document.getElementById('detailTitle').textContent = m.name + ' — platform breakdown';
+  document.getElementById('detailSub').textContent = m.niche + ' · Joined ' + m.joined + (m.left ? ' · Left ' + m.left : '');
+
+  if (memberPlatformInst) memberPlatformInst.destroy();
+  memberPlatformInst = new Chart(document.getElementById('memberPlatformChart'), {
+    type: 'bar',
+    data: {
+      labels: ['YT Main','YT 2nd','Instagram','Twitter/X','Twitch','TikTok'],
+      datasets: [{ data: [m.mainSubs, m.secondSubs, m.ig, m.twitter, m.twitch, m.tiktok],
+        backgroundColor: [m.color, m.color+'88','#FF7A1A','#3A9FFF','#9B5FFF','#3AFFB8'], borderRadius:5, borderSkipped:false }]
+    },
+    options: { ...baseOpts, scales: { x: baseOpts.scales.x, y: { ...baseOpts.scales.y, ticks: { ...baseOpts.scales.y.ticks, callback: v => v+'M' } } } }
+  });
+
+  if (memberRadarInst) memberRadarInst.destroy();
+  memberRadarInst = new Chart(document.getElementById('memberRadarChart'), {
+    type: 'radar',
+    data: {
+      labels: ['YT Main','YT 2nd','Instagram','Twitter','Twitch','TikTok'],
+      datasets: [{ data: [m.mainSubs, m.secondSubs, m.ig, m.twitter, m.twitch, m.tiktok],
+        borderColor: m.color, backgroundColor: m.color+'20', pointBackgroundColor: m.color, borderWidth:2, pointRadius:4 }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{ r:{ grid:{ color:gridColor }, angleLines:{ color:gridColor }, ticks:{ color:tickColor, font:{ size:10 }, backdropColor:'transparent', callback: v => v+'M' }, pointLabels:{ color:tickColor, font:{ size:11, family:'DM Mono' } } }}
+    }
+  });
+}
+
+// ── CHANNELS ──────────────────────────────────────────────────────────────
+
+const orgVsTop = [
+  { label: 'FaZe Clan (Org)', subs: 9.6, color: '#FF7A1A' },
+  { label: 'FaZe Rug', subs: 27.5, color: '#FF3A3A66' },
+  { label: 'Tfue', subs: 11.2, color: '#FF7A1A66' },
+  { label: 'FaZe Adapt', subs: 5.9, color: '#FF3A3A44' },
+  { label: 'FaZe Rain', subs: 5.2, color: '#3A9FFF66' },
+  { label: 'FaZe Jev', subs: 5.4, color: '#FF3A3A' },
+  { label: 'FaZe Kay', subs: 4.8, color: '#9B5FFF66' },
+  { label: 'NICKMERCS', subs: 4.1, color: '#3AFFB866' },
+];
+
+new Chart(document.getElementById('orgVsMemberChart'), {
+  type: 'bar',
+  data: { labels: orgVsTop.map(d => d.label), datasets: [{ data: orgVsTop.map(d => d.subs), backgroundColor: orgVsTop.map(d => d.color), borderRadius:5, borderSkipped:false }] },
+  options: { ...baseOpts, scales: { x: baseOpts.scales.x, y: { ...baseOpts.scales.y, ticks: { ...baseOpts.scales.y.ticks, callback: v => v+'M' } } } }
+});
+
+const tbody = document.getElementById('channelTbody');
+const tagMap = { main:'tag-main', '2nd':'tag-2nd', org:'tag-org', clips:'tag-clips' };
+const tagLabel = { main:'Main', '2nd':'2nd', org:'Org', clips:'Clips' };
+const maxSubs = 27.5;
+
+allChannels.forEach(c => {
+  const pct = Math.round((c.subs / maxSubs) * 100);
+  const memberColor = [...activeMembers, ...formerMembers].find(m => m.name === c.member)?.color || '#FF3A3A';
+  const isFormer = c.status === 'former';
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><div class="ch-name">${c.ch}</div></td>
+    <td style="color:${isFormer ? '#5a5a7a' : memberColor};font-size:12px;font-weight:500">${c.member}</td>
+    <td><span class="ch-tag ${tagMap[c.type]}">${tagLabel[c.type]}</span></td>
+    <td><span class="ch-tag ${isFormer ? 'tag-former' : 'tag-main'}">${isFormer ? 'Former' : 'Active'}</span></td>
+    <td><span class="num big">${c.subs}M</span><span class="bar-mini"><span class="bar-fill bar-mini-fill" style="width:${pct}%;background:${isFormer ? memberColor+'55' : memberColor}"></span></span></td>
+    <td><span class="num">${c.views}</span></td>
+    <td style="font-size:11px;color:var(--text3)">${c.niche}</td>`;
+  tbody.appendChild(tr);
+});
+
+const mainChs = allChannels.filter(c => c.type === 'main' || c.type === 'org').sort((a,b) => b.subs - a.subs);
+new Chart(document.getElementById('allSubsChart'), {
+  type: 'bar',
+  data: {
+    labels: mainChs.map(c => c.ch),
+    datasets: [{ data: mainChs.map(c => c.subs),
+      backgroundColor: mainChs.map(c => {
+        const m = [...activeMembers,...formerMembers].find(m => m.name === c.member);
+        return m ? (c.status==='active' ? m.color : m.color+'55') : '#FF7A1A';
+      }), borderRadius:4, borderSkipped:false }]
+  },
+  options: { ...baseOpts, indexAxis:'y',
+    scales: {
+      x: { ...baseOpts.scales.x, ticks: { ...baseOpts.scales.x.ticks, callback: v => v+'M' } },
+      y: { ...baseOpts.scales.y, ticks: { ...baseOpts.scales.y.ticks, font: { size:10, family:'DM Mono' } } }
+    }
+  }
+});
+
+// ── HISTORY ───────────────────────────────────────────────────────────────
+
+new Chart(document.getElementById('orgGrowthChart'), {
+  type: 'line',
+  data: {
+    labels: ['2010','2011','2012','2013','2014','2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025'],
+    datasets: [{ data: [0.01,0.1,1,1.5,2,2.8,3.5,4.2,5.1,6.2,7.0,8.1,8.8,9.2,9.5,9.6], borderColor:'#FF3A3A', backgroundColor:'rgba(255,58,58,0.06)', fill:true, tension:0.4, pointRadius:3, pointBackgroundColor:'#FF3A3A', borderWidth:2 }]
+  },
+  options: { ...baseOpts, scales: { x: baseOpts.scales.x, y: { ...baseOpts.scales.y, ticks: { ...baseOpts.scales.y.ticks, callback: v => v+'M' } } } }
+});
+
+new Chart(document.getElementById('valuationChart'), {
+  type: 'bar',
+  data: {
+    labels: ['2018','2019','2020','2021','2022\n(IPO)','2023','2024','2025'],
+    datasets: [{ data: [80, 160, 305, 1000, 725, 400, 200, 80], backgroundColor: ['#FF3A3A66','#FF3A3A66','#FF3A3A99','#FF3A3A','#FF7A1A','#FF7A1A99','#FF3A3A66','#FF3A3A44'], borderRadius:5, borderSkipped:false }]
+  },
+  options: { ...baseOpts, scales: { x: baseOpts.scales.x, y: { ...baseOpts.scales.y, ticks: { ...baseOpts.scales.y.ticks, callback: v => '$'+v+'M' } } } }
+});
+
+const tlContainer = document.getElementById('timeline');
+milestones.forEach(m => {
+  const div = document.createElement('div');
+  div.className = 'timeline-item ' + (m.type || '');
+  div.innerHTML = `<div class="tl-date">${m.date}</div><div class="tl-title">${m.title}</div><div class="tl-desc">${m.desc}</div>`;
+  tlContainer.appendChild(div);
+});
+
+new Chart(document.getElementById('rosterChart'), {
+  type: 'line',
+  data: {
+    labels: ['2010','2012','2014','2016','2018','2019','2020','2021','2022','2023','2024\n(Reboot)','2025\n(Exodus)','2026'],
+    datasets: [{ data: [3, 8, 12, 18, 25, 28, 32, 35, 30, 28, 14, 4, 4], borderColor:'#FF3A3A', backgroundColor:'rgba(255,58,58,0.06)', fill:true, tension:0.3, pointRadius:4, pointBackgroundColor:'#FF3A3A', borderWidth:2 }]
+  },
+  options: { ...baseOpts, scales: { x: { ...baseOpts.scales.x, ticks: { ...baseOpts.scales.x.ticks, font:{ size:10 } } }, y: { ...baseOpts.scales.y, ticks: { ...baseOpts.scales.y.ticks, stepSize:5 } } } }
+});
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>

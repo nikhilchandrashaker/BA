@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sidemen Analytics Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --red: #E63946;
+    --red-dim: rgba(230,57,70,0.12);
+    --gold: #F4A01C;
+    --gold-dim: rgba(244,160,28,0.12);
+    --blue: #4CC9F0;
+    --blue-dim: rgba(76,201,240,0.1);
+    --green: #06D6A0;
+    --green-dim: rgba(6,214,160,0.1);
+    --purple: #7B5EA7;
+    --purple-dim: rgba(123,94,167,0.12);
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --surface3: #222230;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #f0f0f8;
+    --text2: #9090b0;
+    --text3: #5a5a7a;
+    --grid: rgba(255,255,255,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Subtle grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 0 24px 60px; }
+
+  /* HEADER */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 0 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .logo-area { display: flex; align-items: center; gap: 16px; }
+
+  .logo-icon {
+    width: 48px; height: 48px;
+    background: var(--red);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px; color: white;
+    flex-shrink: 0;
+  }
+
+  .header-title { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 2px; color: var(--text); line-height: 1; }
+  .header-sub { font-size: 12px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-top: 3px; font-family: 'DM Mono', monospace; }
+
+  .header-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .badge { font-family: 'DM Mono', monospace; font-size: 11px; padding: 5px 10px; border-radius: 4px; border: 1px solid var(--border2); color: var(--text2); background: var(--surface2); letter-spacing: 0.5px; }
+  .badge.live { border-color: var(--green); color: var(--green); }
+  .badge.live::before { content: '● '; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 2px; margin-bottom: 28px; background: var(--surface); border-radius: 8px; padding: 4px; border: 1px solid var(--border); width: fit-content; flex-wrap: wrap; }
+  .tab {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500;
+    padding: 8px 18px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--surface3); color: var(--text); border: 1px solid var(--border2); }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* METRIC GRID */
+  .metric-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+
+  .metric {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .metric:hover { border-color: var(--border2); }
+  .metric::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent, var(--red));
+    opacity: 0.6;
+  }
+  .metric.blue { --accent: var(--blue); }
+  .metric.gold { --accent: var(--gold); }
+  .metric.green { --accent: var(--green); }
+  .metric.purple { --accent: var(--purple); }
+
+  .metric-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; font-family: 'DM Mono', monospace; margin-bottom: 8px; }
+  .metric-value { font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 1px; color: var(--text); line-height: 1; }
+  .metric-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .metric-delta { font-size: 11px; margin-top: 4px; font-family: 'DM Mono', monospace; }
+  .metric-delta.up { color: var(--green); }
+  .metric-delta.dn { color: var(--red); }
+
+  /* CHART CARDS */
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px;
+    margin-bottom: 16px;
+  }
+
+  .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+  .chart-title { font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: 0.2px; }
+  .chart-sub { font-size: 11px; color: var(--text3); margin-top: 2px; font-family: 'DM Mono', monospace; }
+
+  .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 700px) { .chart-row { grid-template-columns: 1fr; } }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+  /* MEMBERS */
+  .member-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 20px; }
+
+  .member-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .member-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+  .member-card.selected { border-color: var(--red); background: var(--surface2); }
+  .member-card::before { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--member-color, var(--red)); opacity: 0; transition: opacity 0.2s; }
+  .member-card:hover::before, .member-card.selected::before { opacity: 1; }
+
+  .avatar {
+    width: 38px; height: 38px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 15px;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+  }
+
+  .member-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 1px; }
+  .member-handle { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; margin-bottom: 10px; }
+
+  .member-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .mstat { }
+  .mstat-val { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.5px; color: var(--text); line-height: 1; }
+  .mstat-lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 1px; }
+
+  /* CHANNELS TABLE */
+  .ch-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .ch-table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); font-family: 'DM Mono', monospace; padding: 8px 12px; border-bottom: 1px solid var(--border); font-weight: 400; }
+  .ch-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: middle; }
+  .ch-table tr:last-child td { border-bottom: none; }
+  .ch-table tr:hover td { background: var(--surface2); color: var(--text); }
+  .ch-name { font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .ch-tag { font-size: 10px; padding: 2px 7px; border-radius: 3px; font-family: 'DM Mono', monospace; font-weight: 400; }
+  .tag-main { background: var(--red-dim); color: var(--red); border: 1px solid rgba(230,57,70,0.2); }
+  .tag-2nd { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(76,201,240,0.2); }
+  .tag-group { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(244,160,28,0.2); }
+  .tag-clips { background: var(--purple-dim); color: #b09fcc; border: 1px solid rgba(123,94,167,0.2); }
+  .tag-sp { background: rgba(123,94,167,0.2); color: #c0aee8; border: 1px solid rgba(123,94,167,0.4); }
+  .num { font-family: 'DM Mono', monospace; font-size: 12px; }
+  .num.big { font-size: 13px; color: var(--text); font-weight: 500; }
+  .bar-mini { width: 80px; height: 5px; background: var(--surface3); border-radius: 3px; display: inline-block; vertical-align: middle; margin-left: 8px; overflow: hidden; }
+  .bar-mini-fill { height: 100%; border-radius: 3px; }
+
+  /* SIDE+ */
+  .sp-header {
+    background: linear-gradient(135deg, #12102a 0%, #1a1238 50%, #0e1a2e 100%);
+    border: 1px solid rgba(123,94,167,0.3);
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .sp-header::before {
+    content: 'SIDE+';
+    position: absolute; right: -10px; top: 50%; transform: translateY(-50%);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 120px;
+    color: rgba(123,94,167,0.06);
+    line-height: 1;
+    pointer-events: none;
+    letter-spacing: 4px;
+  }
+  .sp-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; color: #c0aee8; margin-bottom: 4px; }
+  .sp-desc { font-size: 13px; color: #7870aa; margin-bottom: 20px; font-family: 'DM Mono', monospace; }
+  .sp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .sp-metric { background: rgba(255,255,255,0.04); border: 1px solid rgba(123,94,167,0.2); border-radius: 8px; padding: 12px 14px; }
+  .sp-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: #6860aa; font-family: 'DM Mono', monospace; margin-bottom: 5px; }
+  .sp-val { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1px; color: #d8d0ff; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+
+  .section-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text3); font-family: 'DM Mono', monospace;
+    margin-bottom: 10px; margin-top: 4px;
+  }
+
+  .overflow-x { overflow-x: auto; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="logo-area">
+      <div class="logo-icon">SD</div>
+      <div>
+        <div class="header-title">Sidemen Analytics</div>
+        <div class="header-sub">Social Media Intelligence Dashboard</div>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span class="badge live">Live estimates</span>
+      <span class="badge">Updated Mar 2026</span>
+      <span class="badge">7 Members · 25+ Channels</span>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" onclick="switchTab('overview', this)">Overview</button>
+    <button class="tab" onclick="switchTab('members', this)">Members</button>
+    <button class="tab" onclick="switchTab('channels', this)">All Channels</button>
+    <button class="tab" onclick="switchTab('sideplus', this)">Side+</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div id="overview" class="section active">
+    <p class="section-label">Network totals</p>
+    <div class="metric-grid">
+      <div class="metric blue"><div class="metric-label">Total YT subs</div><div class="metric-value">97.6M</div><div class="metric-sub">all channels combined</div></div>
+      <div class="metric"><div class="metric-label">Main channel</div><div class="metric-value">22.3M</div><div class="metric-sub">Sidemen</div></div>
+      <div class="metric green"><div class="metric-label">Total YT views</div><div class="metric-value">9.4B</div><div class="metric-sub">main channel, all time</div></div>
+      <div class="metric gold"><div class="metric-label">Avg views/video</div><div class="metric-value">6.8M</div><div class="metric-sub">main channel</div></div>
+      <div class="metric purple"><div class="metric-label">Side+ subs</div><div class="metric-value">~180K</div><div class="metric-sub">est. March 2026</div></div>
+      <div class="metric"><div class="metric-label">Combined IG</div><div class="metric-value">66M+</div><div class="metric-sub">all 7 members</div></div>
+      <div class="metric blue"><div class="metric-label">Combined Twitter</div><div class="metric-value">29M+</div><div class="metric-sub">all 7 members</div></div>
+      <div class="metric green"><div class="metric-label">Combined TikTok</div><div class="metric-value">15M+</div><div class="metric-sub">all 7 members</div></div>
+    </div>
+
+    <div class="chart-row">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Member YT subscribers</div>
+            <div class="chart-sub">Main channel · millions</div>
+          </div>
+        </div>
+        <div class="legend">
+          <span class="legend-item"><span class="legend-dot" style="background:#4CC9F0"></span>Main channel</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#06D6A0"></span>2nd channel</span>
+        </div>
+        <div style="position:relative;height:260px"><canvas id="subChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Platform reach split</div>
+            <div class="chart-sub">Combined network · est. followers</div>
+          </div>
+        </div>
+        <div style="position:relative;height:240px"><canvas id="platformPie"></canvas></div>
+        <div class="legend" style="margin-top:12px">
+          <span class="legend-item"><span class="legend-dot" style="background:#E63946"></span>YouTube 58%</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#F4A01C"></span>Instagram 22%</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#4CC9F0"></span>Twitter/X 12%</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#06D6A0"></span>TikTok 8%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Main channel estimated monthly views — 2024</div>
+          <div class="chart-sub">Sidemen · millions</div>
+        </div>
+      </div>
+      <div style="position:relative;height:200px"><canvas id="monthlyChart"></canvas></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header"><div class="chart-title">Instagram following comparison — all members</div></div>
+      <div style="position:relative;height:220px"><canvas id="igChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- MEMBERS -->
+  <div id="members" class="section">
+    <p class="section-label">Select a member</p>
+    <div class="member-grid" id="memberGrid"></div>
+    <div class="chart-card" id="memberDetail">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title" id="detailTitle">Select a member above to see their breakdown</div>
+          <div class="chart-sub" id="detailSub">Followers across all platforms</div>
+        </div>
+      </div>
+      <div class="chart-row">
+        <div>
+          <div style="position:relative;height:260px"><canvas id="memberPlatformChart"></canvas></div>
+        </div>
+        <div>
+          <div style="position:relative;height:260px"><canvas id="memberRadarChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALL CHANNELS -->
+  <div id="channels" class="section">
+    <p class="section-label">Group channels</p>
+    <div class="metric-grid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">
+      <div class="metric gold"><div class="metric-label">Sidemen</div><div class="metric-value">22.3M</div><div class="metric-sub">main</div></div>
+      <div class="metric gold"><div class="metric-label">MoreSidemen</div><div class="metric-value">9.9M</div><div class="metric-sub">2nd group</div></div>
+      <div class="metric gold"><div class="metric-label">Sidemen Reacts</div><div class="metric-value">3.2M</div><div class="metric-sub">react</div></div>
+      <div class="metric gold"><div class="metric-label">SDMNClips</div><div class="metric-value">2.1M</div><div class="metric-sub">clips</div></div>
+      <div class="metric purple"><div class="metric-label">Side+</div><div class="metric-value">~180K</div><div class="metric-sub">premium</div></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header"><div class="chart-title">Group channel subscribers</div></div>
+      <div style="position:relative;height:220px"><canvas id="groupChChart"></canvas></div>
+    </div>
+
+    <p class="section-label" style="margin-top:8px">All individual channels</p>
+    <div class="chart-card">
+      <div class="overflow-x">
+        <table class="ch-table" id="channelTable">
+          <thead>
+            <tr>
+              <th>Channel</th>
+              <th>Member</th>
+              <th>Type</th>
+              <th>Subscribers</th>
+              <th>Est. Total Views</th>
+              <th>Avg Views/Video</th>
+              <th>Niche</th>
+            </tr>
+          </thead>
+          <tbody id="channelTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="chart-card" style="margin-top:0">
+      <div class="chart-header"><div class="chart-title">Individual channel subscribers comparison</div></div>
+      <div style="position:relative;height:340px"><canvas id="allChChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- SIDE+ -->
+  <div id="sideplus" class="section">
+    <div class="sp-header">
+      <div class="sp-title">Side+</div>
+      <div class="sp-desc">sidemenplus.com · premium subscription platform · launched 2023</div>
+      <div class="sp-grid">
+        <div class="sp-metric"><div class="sp-label">Est. subscribers</div><div class="sp-val">~180K</div></div>
+        <div class="sp-metric"><div class="sp-label">Est. MRR</div><div class="sp-val">~£270K</div></div>
+        <div class="sp-metric"><div class="sp-label">Price/month</div><div class="sp-val">£1.99</div></div>
+        <div class="sp-metric"><div class="sp-label">Launch</div><div class="sp-val">2023</div></div>
+        <div class="sp-metric"><div class="sp-label">Excl. videos/mo</div><div class="sp-val">~12</div></div>
+        <div class="sp-metric"><div class="sp-label">Est. ARR</div><div class="sp-val">~£3.2M</div></div>
+      </div>
+    </div>
+
+    <div class="chart-row">
+      <div class="chart-card">
+        <div class="chart-header"><div><div class="chart-title">Est. subscriber growth</div><div class="chart-sub">Thousands · since launch</div></div></div>
+        <div style="position:relative;height:240px"><canvas id="spGrowthChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header"><div><div class="chart-title">Revenue estimate by quarter</div><div class="chart-sub">£ thousands · MRR × 3</div></div></div>
+        <div style="position:relative;height:240px"><canvas id="spRevenueChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="chart-row">
+      <div class="chart-card">
+        <div class="chart-header"><div class="chart-title">Content type breakdown</div></div>
+        <div class="legend">
+          <span class="legend-item"><span class="legend-dot" style="background:#7B5EA7"></span>Exclusive vlogs 40%</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#4CC9F0"></span>Bonus content 30%</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#06D6A0"></span>Early access 20%</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#F4A01C"></span>Behind scenes 10%</span>
+        </div>
+        <div style="position:relative;height:220px"><canvas id="spContentChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header"><div class="chart-title">Side+ vs free YouTube — content split</div></div>
+        <div style="position:relative;height:220px"><canvas id="spVsChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const members = [
+  { name:'KSI', handle:'@KSI', avatar:'KS', color:'#E63946', bg:'rgba(230,57,70,0.15)',
+    mainSubs:24.2, secondSubs:12.1, ig:14.2, twitter:11.5, tiktok:8.2, avgViews:8.4,
+    totalViews:'4.2B', mainCh:'KSI', secondCh:'JJ Olatunji',
+    niche:'Entertainment / Music', nationality:'British-Nigerian' },
+  { name:'Miniminter', handle:'@Miniminter', avatar:'MM', color:'#4CC9F0', bg:'rgba(76,201,240,0.12)',
+    mainSubs:9.8, secondSubs:2.3, ig:3.8, twitter:3.1, tiktok:1.2, avgViews:2.1,
+    totalViews:'1.8B', mainCh:'Miniminter', secondCh:'Minter Clips',
+    niche:'Gaming / Lifestyle', nationality:'British' },
+  { name:'Zerkaa', handle:'@Zerkaa', avatar:'ZK', color:'#06D6A0', bg:'rgba(6,214,160,0.12)',
+    mainSubs:5.2, secondSubs:1.8, ig:2.1, twitter:2.0, tiktok:0.9, avgViews:1.1,
+    totalViews:'1.1B', mainCh:'Zerkaa', secondCh:'ZerkaaPlays',
+    niche:'Gaming / Football', nationality:'British' },
+  { name:'TBJZL', handle:'@TBJZL', avatar:'TB', color:'#F4A01C', bg:'rgba(244,160,28,0.12)',
+    mainSubs:4.1, secondSubs:1.2, ig:1.8, twitter:1.6, tiktok:0.7, avgViews:0.9,
+    totalViews:'0.8B', mainCh:'TBJZL', secondCh:'Tobi Brown',
+    niche:'Lifestyle / Faith', nationality:'British-Nigerian' },
+  { name:'Vikkstar123', handle:'@Vikkstar123', avatar:'VK', color:'#7B5EA7', bg:'rgba(123,94,167,0.15)',
+    mainSubs:7.6, secondSubs:3.4, ig:2.4, twitter:2.2, tiktok:0.8, avgViews:1.8,
+    totalViews:'2.1B', mainCh:'Vikkstar123', secondCh:'Vikkstar123HD',
+    niche:'Gaming / Minecraft', nationality:'British-Indian' },
+  { name:'Behzinga', handle:'@Behzinga', avatar:'BZ', color:'#F4A01C', bg:'rgba(244,160,28,0.12)',
+    mainSubs:4.3, secondSubs:1.6, ig:2.9, twitter:1.8, tiktok:1.1, avgViews:1.0,
+    totalViews:'0.9B', mainCh:'Behzinga', secondCh:'Beh2inga',
+    niche:'Fitness / Football', nationality:'British' },
+  { name:'W2S', handle:'@W2S', avatar:'W2', color:'#E63946', bg:'rgba(230,57,70,0.15)',
+    mainSubs:16.4, secondSubs:4.8, ig:5.2, twitter:3.4, tiktok:2.3, avgViews:3.2,
+    totalViews:'3.1B', mainCh:'W2S', secondCh:'Wroetoshaw',
+    niche:'Football / Challenges', nationality:'British' },
+];
+
+const allChannels = [
+  // GROUP
+  { ch:'Sidemen', member:'Group', type:'group', subs:22.3, views:'9.4B', avg:'6.8M', niche:'Challenges / Football' },
+  { ch:'MoreSidemen', member:'Group', type:'group', subs:9.9, views:'3.1B', avg:'2.4M', niche:'Vlogs / Behind scenes' },
+  { ch:'Sidemen Reacts', member:'Group', type:'group', subs:3.2, views:'0.7B', avg:'1.2M', niche:'React content' },
+  { ch:'SDMNClips', member:'Group', type:'clips', subs:2.1, views:'0.4B', avg:'0.4M', niche:'Clips / Highlights' },
+  // KSI
+  { ch:'KSI', member:'KSI', type:'main', subs:24.2, views:'4.2B', avg:'8.4M', niche:'Entertainment / Music' },
+  { ch:'JJ Olatunji', member:'KSI', type:'2nd', subs:12.1, views:'1.8B', avg:'3.1M', niche:'Music / Vlogs' },
+  { ch:'KSI Music', member:'KSI', type:'2nd', subs:3.8, views:'0.9B', avg:'12M', niche:'Music videos' },
+  { ch:'KSIOlajideBT', member:'KSI', type:'clips', subs:1.6, views:'0.3B', avg:'0.5M', niche:'Old content / Gaming' },
+  // MINIMINTER
+  { ch:'Miniminter', member:'Miniminter', type:'main', subs:9.8, views:'1.8B', avg:'2.1M', niche:'Gaming / Lifestyle' },
+  { ch:'Minter Clips', member:'Miniminter', type:'clips', subs:2.3, views:'0.4B', avg:'0.6M', niche:'Clips' },
+  { ch:'Simon Says', member:'Miniminter', type:'2nd', subs:1.1, views:'0.2B', avg:'0.8M', niche:'Shorts / Misc' },
+  // ZERKAA
+  { ch:'Zerkaa', member:'Zerkaa', type:'main', subs:5.2, views:'1.1B', avg:'1.1M', niche:'Gaming / Football' },
+  { ch:'ZerkaaPlays', member:'Zerkaa', type:'2nd', subs:1.8, views:'0.3B', avg:'0.4M', niche:'Gaming' },
+  { ch:'ZerkaaHD', member:'Zerkaa', type:'clips', subs:0.8, views:'0.1B', avg:'0.3M', niche:'Old gaming' },
+  // TBJZL
+  { ch:'TBJZL', member:'TBJZL', type:'main', subs:4.1, views:'0.8B', avg:'0.9M', niche:'Lifestyle / Faith' },
+  { ch:'Tobi Brown', member:'TBJZL', type:'2nd', subs:1.2, views:'0.2B', avg:'0.5M', niche:'Vlogs / Podcast' },
+  // VIKKSTAR
+  { ch:'Vikkstar123', member:'Vikkstar123', type:'main', subs:7.6, views:'2.1B', avg:'1.8M', niche:'Gaming / Minecraft' },
+  { ch:'Vikkstar123HD', member:'Vikkstar123', type:'2nd', subs:3.4, views:'0.8B', avg:'0.9M', niche:'Vlog / Gaming 2nd' },
+  { ch:'Vikkstar Music', member:'Vikkstar123', type:'2nd', subs:0.6, views:'0.05B', avg:'0.3M', niche:'Music' },
+  // BEHZINGA
+  { ch:'Behzinga', member:'Behzinga', type:'main', subs:4.3, views:'0.9B', avg:'1.0M', niche:'Fitness / Football' },
+  { ch:'Beh2inga', member:'Behzinga', type:'2nd', subs:1.6, views:'0.3B', avg:'0.6M', niche:'Vlogs / Fitness' },
+  // W2S
+  { ch:'W2S', member:'W2S', type:'main', subs:16.4, views:'3.1B', avg:'3.2M', niche:'Football / Challenges' },
+  { ch:'Wroetoshaw', member:'W2S', type:'2nd', subs:4.8, views:'1.1B', avg:'1.4M', niche:'Vlogs / Personal' },
+  { ch:'W2SPlays', member:'W2S', type:'clips', subs:1.3, views:'0.2B', avg:'0.4M', niche:'Gaming / Clips' },
+];
+
+const gridColor = 'rgba(255,255,255,0.05)';
+const tickColor = '#5a5a7a';
+const baseOpts = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11, family: 'DM Mono' } }, border: { color: 'transparent' } },
+    y: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11, family: 'DM Mono' } }, border: { color: 'transparent' } }
+  }
+};
+
+// ---- OVERVIEW ----
+new Chart(document.getElementById('subChart'), {
+  type: 'bar',
+  data: {
+    labels: members.map(m => m.name),
+    datasets: [
+      { label: 'Main', data: members.map(m => m.mainSubs), backgroundColor: '#4CC9F0', borderRadius: 4, borderSkipped: false },
+      { label: '2nd', data: members.map(m => m.secondSubs), backgroundColor: '#06D6A0', borderRadius: 4, borderSkipped: false }
+    ]
+  },
+  options: { ...baseOpts, scales: { x: { ...baseOpts.scales.x, stacked: false }, y: { ...baseOpts.scales.y, ticks: { ...baseOpts.scales.y.ticks, callback: v => v + 'M' } } } }
+});
+
+new Chart(document.getElementById('platformPie'), {
+  type: 'doughnut',
+  data: {
+    datasets: [{ data: [58, 22, 12, 8], backgroundColor: ['#E63946','#F4A01C','#4CC9F0','#06D6A0'], borderWidth: 0, hoverOffset: 8 }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '65%' }
+});
+
+const months12 = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+new Chart(document.getElementById('monthlyChart'), {
+  type: 'line',
+  data: { labels: months12, datasets: [{ data: [38,42,51,46,55,49,68,72,85,64,78,90], borderColor:'#E63946', backgroundColor:'rgba(230,57,70,0.07)', fill:true, tension:0.4, pointRadius:3, pointBackgroundColor:'#E63946', borderWidth:2 }] },
+  options: { ...baseOpts, scales: { x: baseOpts.scales.x, y: { ...baseOpts.scales.y, ticks: { ...baseOpts.scales.y.ticks, callback: v => v + 'M' } } } }
+});
+
+new Chart(document.getElementById('igChart'), {
+  type: 'bar',
+  data: {
+    labels: members.map(m => m.name),
+    datasets: [{ data: members.map(m => m.ig), backgroundColor: members.map(m => m.color), borderRadius: 5, borderSkipped: false }]
+  },
+  options: { ...baseOpts, scales: { x: baseOpts.scales.x, y: { ...baseOpts.scales.y, ticks: { ...baseOpts.scales.y.ticks, callback: v => v + 'M' } } } }
+});
+
+// ---- MEMBERS ----
+const grid = document.getElementById('memberGrid');
+let memberPlatformInst = null, memberRadarInst = null;
+
+members.forEach((m, i) => {
+  const card = document.createElement('div');
+  card.className = 'member-card';
+  card.style.setProperty('--member-color', m.color);
+  card.innerHTML = `
+    <div class="avatar" style="background:${m.bg};color:${m.color}">${m.avatar}</div>
+    <div class="member-name">${m.name}</div>
+    <div class="member-handle">${m.handle}</div>
+    <div class="member-stats">
+      <div class="mstat"><div class="mstat-val">${m.mainSubs}M</div><div class="mstat-lbl">YT main</div></div>
+      <div class="mstat"><div class="mstat-val">${m.ig}M</div><div class="mstat-lbl">Instagram</div></div>
+      <div class="mstat"><div class="mstat-val">${m.twitter}M</div><div class="mstat-lbl">Twitter</div></div>
+      <div class="mstat"><div class="mstat-val">${m.tiktok}M</div><div class="mstat-lbl">TikTok</div></div>
+    </div>`;
+  card.onclick = () => selectMember(i, card);
+  grid.appendChild(card);
+});
+
+function selectMember(i, card) {
+  document.querySelectorAll('.member-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  const m = members[i];
+  document.getElementById('detailTitle').textContent = m.name + ' — platform breakdown';
+  document.getElementById('detailSub').textContent = m.niche + ' · ' + m.nationality;
+
+  if (memberPlatformInst) memberPlatformInst.destroy();
+  memberPlatformInst = new Chart(document.getElementById('memberPlatformChart'), {
+    type: 'bar',
+    data: {
+      labels: ['YT Main', 'YT 2nd', 'Instagram', 'Twitter/X', 'TikTok'],
+      datasets: [{ data: [m.mainSubs, m.secondSubs, m.ig, m.twitter, m.tiktok],
+        backgroundColor: [m.color, m.color+'88', '#F4A01C', '#4CC9F0', '#06D6A0'], borderRadius: 5, borderSkipped: false }]
+    },
+    options: { ...baseOpts, scales: { x: baseOpts.scales.x, y: { ...baseOpts.scales.y, ticks: { ...baseOpts.scales.y.ticks, callback: v => v + 'M' } } } }
+  });
+
+  if (memberRadarInst) memberRadarInst.destroy();
+  const max = 25;
+  memberRadarInst = new Chart(document.getElementById('memberRadarChart'), {
+    type: 'radar',
+    data: {
+      labels: ['YT Main', 'YT 2nd', 'Instagram', 'Twitter', 'TikTok', 'Avg Views'],
+      datasets: [{ data: [m.mainSubs, m.secondSubs, m.ig, m.twitter, m.tiktok, m.avgViews],
+        borderColor: m.color, backgroundColor: m.color + '22', pointBackgroundColor: m.color, borderWidth: 2, pointRadius: 4 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { r: {
+        grid: { color: gridColor },
+        angleLines: { color: gridColor },
+        ticks: { color: tickColor, font: { size: 10 }, backdropColor: 'transparent', callback: v => v + 'M' },
+        pointLabels: { color: tickColor, font: { size: 11, family: 'DM Mono' } }
+      }}
+    }
+  });
+}
+
+// ---- CHANNELS ----
+new Chart(document.getElementById('groupChChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Sidemen','MoreSidemen','Sidemen Reacts','SDMNClips','Side+'],
+    datasets: [{ data: [22.3, 9.9, 3.2, 2.1, 0.18], backgroundColor: ['#F4A01C','#F4A01C88','#F4A01C55','#7B5EA7','#9b7ec8'], borderRadius: 6, borderSkipped: false }]
+  },
+  options: { ...baseOpts, indexAxis:'y', scales: { x: { ...baseOpts.scales.x, ticks: { ...baseOpts.scales.x.ticks, callback: v => v + 'M' } }, y: baseOpts.scales.y } }
+});
+
+const tbody = document.getElementById('channelTbody');
+const tagMap = { main:'tag-main', '2nd':'tag-2nd', group:'tag-group', clips:'tag-clips', sp:'tag-sp' };
+const tagLabel = { main:'Main', '2nd':'2nd', group:'Group', clips:'Clips', sp:'Side+' };
+
+allChannels.forEach(c => {
+  const maxSubs = 24.2;
+  const pct = Math.round((c.subs / maxSubs) * 100);
+  const color = c.member === 'KSI' ? '#E63946' : c.member === 'Miniminter' ? '#4CC9F0' : c.member === 'Zerkaa' ? '#06D6A0' : c.member === 'TBJZL' ? '#F4A01C' : c.member === 'Vikkstar123' ? '#7B5EA7' : c.member === 'Behzinga' ? '#F4A01C' : c.member === 'W2S' ? '#E63946' : '#F4A01C';
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><div class="ch-name">${c.ch}</div></td>
+    <td style="color:${color};font-size:12px;font-weight:500">${c.member}</td>
+    <td><span class="ch-tag ${tagMap[c.type]}">${tagLabel[c.type]}</span></td>
+    <td><span class="num big">${c.subs}M</span><span class="bar-mini"><span class="bar-fill" style="width:${pct}%;background:${color}88"></span></span></td>
+    <td><span class="num">${c.views}</span></td>
+    <td><span class="num">${c.avg}</span></td>
+    <td style="font-size:12px;color:var(--text3)">${c.niche}</td>`;
+  tbody.appendChild(tr);
+});
+
+const topChs = allChannels.filter(c => c.type === 'main' || c.type === 'group').slice(0,12);
+new Chart(document.getElementById('allChChart'), {
+  type: 'bar',
+  data: {
+    labels: topChs.map(c => c.ch),
+    datasets: [{ data: topChs.map(c => c.subs),
+      backgroundColor: topChs.map(c => {
+        if (c.member==='Group') return '#F4A01C';
+        const mObj = members.find(m => m.name===c.member || (c.member==='W2S'&&m.name==='W2S'));
+        return mObj ? mObj.color+'cc' : '#888';
+      }), borderRadius: 5, borderSkipped: false }]
+  },
+  options: { ...baseOpts, scales: { x: { ...baseOpts.scales.x, ticks: { ...baseOpts.scales.x.ticks, maxRotation: 35 } }, y: { ...baseOpts.scales.y, ticks: { ...baseOpts.scales.y.ticks, callback: v => v + 'M' } } } }
+});
+
+// ---- SIDE+ ----
+const spLabels = ['Q1 23','Q2 23','Q3 23','Q4 23','Q1 24','Q2 24','Q3 24','Q4 24','Q1 25'];
+const spSubs   = [0, 22, 65, 110, 135, 155, 165, 180, 180];
+new Chart(document.getElementById('spGrowthChart'), {
+  type: 'line',
+  data: { labels: spLabels, datasets: [{ data: spSubs, borderColor:'#7B5EA7', backgroundColor:'rgba(123,94,167,0.1)', fill:true, tension:0.4, pointRadius:4, pointBackgroundColor:'#7B5EA7', borderWidth:2 }] },
+  options: { ...baseOpts, scales: { x: baseOpts.scales.x, y: { ...baseOpts.scales.y, ticks: { ...baseOpts.scales.y.ticks, callback: v => v + 'K' } } } }
+});
+
+const spRev = spSubs.map(s => Math.round(s * 1.99 * 3));
+new Chart(document.getElementById('spRevenueChart'), {
+  type: 'bar',
+  data: { labels: spLabels, datasets: [{ data: spRev, backgroundColor: spRev.map((_, i) => i === spRev.length-1 ? '#7B5EA7' : '#7B5EA755'), borderRadius: 5, borderSkipped: false }] },
+  options: { ...baseOpts, scales: { x: baseOpts.scales.x, y: { ...baseOpts.scales.y, ticks: { ...baseOpts.scales.y.ticks, callback: v => '£' + v + 'K' } } } }
+});
+
+new Chart(document.getElementById('spContentChart'), {
+  type: 'doughnut',
+  data: { datasets: [{ data: [40, 30, 20, 10], backgroundColor: ['#7B5EA7','#4CC9F0','#06D6A0','#F4A01C'], borderWidth: 0, hoverOffset: 6 }] },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '60%' }
+});
+
+new Chart(document.getElementById('spVsChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Challenges','Vlogs','Football','Podcast','Exclusive','Bonus','Early Access','BTS'],
+    datasets: [
+      { label: 'Free YouTube', data: [35, 18, 28, 10, 0, 0, 5, 4], backgroundColor: '#E6394666', borderRadius: 3 },
+      { label: 'Side+', data: [5, 15, 10, 0, 40, 30, 20, 10], backgroundColor: '#7B5EA7', borderRadius: 3 }
+    ]
+  },
+  options: { ...baseOpts, plugins: { legend: { display: true, labels: { color: tickColor, font: { size: 11, family: 'DM Mono' }, boxWidth: 10, boxHeight: 10 } } }, scales: { x: { ...baseOpts.scales.x, ticks: { ...baseOpts.scales.x.ticks, maxRotation: 30 } }, y: { ...baseOpts.scales.y, ticks: { ...baseOpts.scales.y.ticks, callback: v => v + '%' } } } }
+});
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
